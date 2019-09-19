@@ -1,0 +1,10 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+audit/*
+!audit/.gitkeep
+input/data/clean/*
+input/data/recoded/*
+output/results/*
+data_cleaning/*
