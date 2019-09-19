@@ -527,7 +527,46 @@ data <- data %>%
     final_displacement_status_non_displ == "recent_idps" ~ "recent",
     idp_displ_year == 0 | idp_displ_year == 1 ~ "prolonged",
     idp_displ_year >= 2 ~ "protracted"
+  ),
+  
+  prev_displacement_num_class = case_when(
+    prev_displacement_num == 2 ~ "2",
+    prev_displacement_num == 3 ~ "3",
+    prev_displacement_num >3 ~ "4+"
+  ),
+  
+  refugee_displace_year_class = case_when(
+    refugee_displace_year == 0 ~ "0",
+    refugee_displace_year == 1 ~ "1",
+    refugee_displace_year == 2 ~ "2",
+    refugee_displace_year == 3 ~ "3",
+    refugee_displace_year > 3 ~ "4+"
+  ),
+  
+  cb_return_displace_year_class = case_when(
+    cb_return_displace_year == 0 ~ "0",
+    cb_return_displace_year == 1 ~ "1",
+    cb_return_displace_year == 2 ~ "2",
+    cb_return_displace_year == 3 ~ "3",
+    cb_return_displace_year > 3 ~ "4+"
+  ),
+  
+  cb_return_return_year_call = case_when(
+    cb_return_return_year == 0 ~ "0",
+    cb_return_return_year == 1 ~ "1",
+    cb_return_return_year == 2 ~ "2",
+    cb_return_return_year == 3 ~ "3",
+    cb_return_return_year > 3 ~ "4+"
+  ),
+  
+  idp_displ_year_class = case_when(
+    idp_displ_year == 0 ~ "0",
+    idp_displ_year == 1 ~ "1",
+    idp_displ_year == 2 ~ "2",
+    idp_displ_year == 3 ~ "3",
+    idp_displ_year > 3 ~ "4+"
   )
+  
 )
 
 
