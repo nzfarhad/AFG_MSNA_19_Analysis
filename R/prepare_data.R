@@ -93,55 +93,145 @@ data <- data %>%
 ### Protection ###
 
 # protection incidents
-data$severe_prot_incidents<-coerc(data[["adult_prot_incidents.assaulted_with_weapon"]])+coerc(data[["child_prot_incidents.assaulted_with_weapon"]])+coerc(data[["adult_prot_incidents.forced_work"]])+coerc(data[["child_prot_incidents.forced_work"]])+coerc(data[["adult_prot_incidents.forcibly_detained"]])+coerc(data[["child_prot_incidents.forcibly_detained"]])+coerc(data[["adult_prot_incidents.hindered_leave_settlement"]])+coerc(data[["child_prot_incidents.hindered_leave_settlement"]])
+######################
 
-data$less_severe_prot_incidents<-coerc(data[["adult_prot_incidents.verbally_threatened"]])+coerc(data[["child_prot_incidents.verbally_threatened"]])+coerc(data[["adult_prot_incidents.assaulted_without_weapon"]])+coerc(data[["child_prot_incidents.assaulted_without_weapon"]])+coerc(data[["adult_prot_incidents.hindered_leave_district"]])+coerc(data[["child_prot_incidents.hindered_leave_district"]])
+severe_prot_incidents_vars <-  c(
+  "adult_prot_incidents.assaulted_with_weapon",
+  "child_prot_incidents.assaulted_with_weapon",
+  "adult_prot_incidents.forced_work",
+  "child_prot_incidents.forced_work",
+  "adult_prot_incidents.forcibly_detained",
+  "child_prot_incidents.forcibly_detained",
+  "adult_prot_incidents.hindered_leave_settlement",
+  "child_prot_incidents.hindered_leave_settlement"
+  )
 
-data$prot_incident_class<-ifelse(data$severe_prot_incidents >= 1, 3, ifelse(data$severe_prot_incidents==0 & data$less_severe_prot_incidents >=1,2,0))
+less_severe_prot_incidents_vars <-c(
+  "adult_prot_incidents.verbally_threatened",
+  "child_prot_incidents.verbally_threatened",
+  "adult_prot_incidents.assaulted_without_weapon",
+  "child_prot_incidents.assaulted_without_weapon",
+  "adult_prot_incidents.hindered_leave_district",
+  "child_prot_incidents.hindered_leave_district"
+  )
 
-# violence targeting women, girls, boys
-data$sgbv_incidents_class<-ifelse(data$other_incidents.sgbv==1,2,0)
-data$sgbv_incidents_class[is.na(data$sgbv_incidents_class)] <- 0
+data$severe_prot_incidents <- comp_score(data, severe_prot_incidents_vars)
+data$less_severe_prot_incidents <- comp_score(data, less_severe_prot_incidents_vars)
 
-# children working unsafe conditions
-data$children_work_safety_class<-ifelse(data$children_work_safety=='yes',1,0)
-data$children_work_safety_class[is.na(data$children_work_safety_class)] <- 0
+data <- data %>% 
+  mutate(
+    prot_incident_class = case_when(
+      severe_prot_incidents >= 1 ~ 3,
+      severe_prot_incidents == 0 & data$less_severe_prot_incidents >= 1 ~ 2,
+      TRUE ~ 0),
+    # violence targeting women, girls, boys
+    sgbv_incidents_class = case_when(
+      other_incidents.sgbv == 1 ~ 2,
+      TRUE ~ 0
+      ),
+    # children working unsafe conditions
+    children_work_safety_class = case_when(
+      children_work_safety =='yes' ~ 1,
+      TRUE ~ 0
+      )
+  )
 
 # protection concerens
-data$severe_prot_concerns<-coerc(data[["prot_concerns.violence_maiming"]])+coerc(data[["prot_concerns.abduction"]])+coerc(data[["prot_concerns.explosive_hazards"]])
+######################
 
-data$less_severe_prot_concerns<-coerc(data[["prot_concerns.violence_injuries"]])+coerc(data[["prot_concerns.early_marriage"]])+coerc(data[["prot_concerns.destruction_property"]])+coerc(data[["prot_concerns.theft"]])+coerc(data[["prot_concerns.psych_wellbeing"]])
+severe_prot_concerns_vars <- c(
+  "prot_concerns.violence_maiming",
+  "prot_concerns.abduction",
+  "prot_concerns.explosive_hazards"
+  )
 
-data$prot_concerns_class<-ifelse(data$severe_prot_concerns >= 1, 3, ifelse(data$severe_prot_concerns==0 & data$less_severe_prot_concerns >=1,2,0))
+less_severe_prot_concerns_vars <- c(
+  "prot_concerns.violence_injuries",
+  "prot_concerns.early_marriage",
+  "prot_concerns.destruction_property",
+  "prot_concerns.theft",
+  "prot_concerns.psych_wellbeing"
+  )
 
-# hh members injured conflict or nat disaster
-data$injuries_class<-ifelse(data$adult_injuries_cause == 'conflict' | data$adult_injuries_cause == 'natural_disaster' | data$child_injuries_cause == 'conflict' | data$child_injuries_cause == 'natural_disaster',3,0)
-data$injuries_class[is.na(data$injuries_class)] <- 0
+data$severe_prot_concerns <- comp_score(data, severe_prot_concerns_vars)
+data$less_severe_prot_concerns <- comp_score(data, less_severe_prot_concerns_vars)
+
+data <-  data %>% 
+  mutate(
+    prot_concerns_class = case_when(
+      severe_prot_concerns >= 1 ~ 3,
+      severe_prot_concerns == 0 & data$less_severe_prot_concerns >= 1 ~ 2,
+      TRUE ~ 0
+    ),
+  # hh members injured conflict or nat disaster
+    injuries_class = case_when(
+      adult_injuries_cause %in% c('conflict', 'natural_disaster') |
+      child_injuries_cause %in% c('conflict', 'natural_disaster' ~ 3,
+      TRUE ~ 0)
+    )
+  )
+
 
 # explosive hazards
-data$severe_explosive_hazards<-coerc(data[["explosive_impact.injury_death"]])+coerc(data[["explosive_impact.access_services"]])
+severe_explosive_hazards_vars <- c(
+  "explosive_impact.injury_death", 
+  "explosive_impact.access_services"
+                                   )
+less_severe_explosive_hazards_vars <- c(
+  "explosive_impact.relocation", 
+  "explosive_impact.livelihoods_impact",
+  "explosive_impact.psych_impact"
+                                        )
 
-data$less_severe_explosive_hazards<-coerc(data[["explosive_impact.relocation"]])+coerc(data[["explosive_impact.livelihoods_impact"]])+coerc(data[["explosive_impact.psych_impact"]])
+data$severe_explosive_hazards <- comp_score(data, severe_explosive_hazards_vars)
+data$less_severe_explosive_hazards <- comp_score(data, less_severe_explosive_hazards_vars)
 
-data$prot_explosive_hazards_class<-ifelse(data$severe_explosive_hazards >= 1,3, ifelse(data$severe_explosive_hazards==0 & data$less_severe_explosive_hazards >=1,2,0))
+data <- data %>% 
+  mutate(
+    prot_explosive_hazards_class = case_when(
+      severe_explosive_hazards >= 1 ~ 3,
+      severe_explosive_hazards == 0 & less_severe_explosive_hazards >=1 ~ 2,
+      TRUE ~ 0
+    )
+  )
 
-data$prot_explosive_hazards_class[is.na(data$prot_explosive_hazards_class)] <- 0
 
 # tazkira
-data$tazkira_total<-coerc(data[["adult_tazkira"]])+coerc(data[["child_tazkira"]])
+
+tazkira_total_vars <- c(
+  "adult_tazkira", 
+  "child_tazkira")
+data$tazkira_total<-comp_score(data, tazkira_total_vars)
+
 data$tazkira_class<-ifelse(data$tazkira_total==0,2,ifelse(data$tazkira_total>0 & data$tazkira_total< data$hh_size,1,0))
 data$tazkira_class[is.na(data$tazkira_class)] <- 0
 
 # Protection Severity Score
-data$prot_score<-coerc(data[["prot_incident_class"]])+coerc(data[["sgbv_incidents_class"]])+coerc(data[["children_work_safety_class"]])+coerc(data[["prot_concerns_class"]])+coerc(data[["injuries_class"]])+coerc(data[["prot_explosive_hazards_class"]])+coerc(data[["tazkira_class"]])
+prot_score_vars <- c(
+  "prot_incident_class",
+  "sgbv_incidents_class",
+  "children_work_safety_class",
+  "prot_concerns_class",
+  "injuries_class",
+  "prot_explosive_hazards_class",
+  "tazkira_class")
 
-data$prot_severity<-recode(data$prot_score,
-                           "0:2='1';
-                           3:5='2';
-                           6:8='3';
-                           9:18='4'")  
+data$prot_score <- comp_score(data, prot_score_vars)
 
-data$prot_sev_high<-ifelse(data$prot_severity==3|data$prot_severity==4,1,0)
+data <- data %>% 
+  mutate(
+    prot_severity = case_when(
+         prot_score <= 2  ~ 1,
+         prot_score <= 5  ~ 2,
+         prot_score <= 8  ~ 3,
+         prot_score <= 18 ~ 4
+         ), 
+    prot_sev_high = case_when(
+      prot_severity >= 3 ~ 1,
+      TRUE ~ 0
+      )
+  )
+
 
 
 ###############################################################################################################
