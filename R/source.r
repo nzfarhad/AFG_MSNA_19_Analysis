@@ -6,13 +6,13 @@
 # goes in the source folder
 # this will be links to data
 # and libraries that are loaded
-source <- here("R", 
+source <- here::here("R", 
                 "source")
 
 # any user written functions go in the functions
 # folder
 
-functions <- here("R", 
+functions <- here::here("R", 
                   "functions")
 
 # Get all of the scripts in the source and functions
