@@ -9,24 +9,23 @@
 # setup analysis environment
 source("./R/source.R")
 
+# character operation
+ch<-as.character
+chr<-as.character
 
+coerc<-function(x){as.numeric(chr(x))}
 
-###############################################################################################################
-# load data
+# load data 
 data <- read_excel(master_data, sheet = "MSNA_AFG_19_parent_sheet", na = c("","NA"))
 
-
-###############################################################################################################
 #  composite indicators #
-###############################################################################################################
-
 # The composite indicators are a combination of different variables
 # each value within a variable has a score and these need to be 
 # coded for the different categories.
 # Then the variables can be summed in order to get the score
 
 # This will be done for multiple sectors.
-
+#### Composite indicators ############
 ### Food Security & Agriculture ####
 
 # FCS
@@ -88,15 +87,18 @@ data <- data %>%
       )
     )
 
-###############################################################################################################
 
-### Protection ###
+summ(mtcars)
+
+
+##################################################################
+
+### Protection ####
 
 # First setup the variables required to calculate the indicators and then calculate them
 # This way around if the weights are changed then it's all in one place.
 
 # protection incidents
-######################
 
 severe_prot_incidents_vars <-  c(
   "adult_prot_incidents.assaulted_with_weapon",
@@ -122,7 +124,6 @@ data$severe_prot_incidents <- comp_score(data, severe_prot_incidents_vars)
 data$less_severe_prot_incidents <- comp_score(data, less_severe_prot_incidents_vars)
 
 # protection concerns
-######################
 
 severe_prot_concerns_vars <- c(
   "prot_concerns.violence_maiming",
@@ -142,7 +143,6 @@ data$severe_prot_concerns <- comp_score(data, severe_prot_concerns_vars)
 data$less_severe_prot_concerns <- comp_score(data, less_severe_prot_concerns_vars)
 
 # explosive hazards
-######################
 
 severe_explosive_hazards_vars <- c(
   "explosive_impact.injury_death", 
@@ -159,7 +159,6 @@ data$less_severe_explosive_hazards <- comp_score(data, less_severe_explosive_haz
 
 
 # tazkira
-######################
 
 tazkira_total_vars <- c(
   "adult_tazkira", 
@@ -237,9 +236,9 @@ data <- data %>%
 
 
 
-###############################################################################################################
+#################################################################
 
-### ESNFI ###
+### ESNFI ####
 
 # shelter type
 data$shelter_class<-ifelse(data$shelter == 'open_space',3,ifelse(data$shelter == 'tent' | data$shelter == 'makeshift_shelter' | data$shelter == 'collective_centre' | data$shelter == 'transitional',2,0))
@@ -286,9 +285,9 @@ data$esnfi_severity<-recode(data$esnfi_score,
 
 data$esnfi_sev_high<-ifelse(data$esnfi_severity==3|data$esnfi_severity==4,1,0)
 
-###############################################################################################################
+#################################################################
 
-### WASH ###
+### WASH ####
 
 # water source #
 data$water_source_class<-recode(data$water_source,
@@ -330,8 +329,7 @@ data$wash_severity<-recode(data$wash_score,
 
 data$wash_sev_high<-ifelse(data$wash_severity==3|data$wash_severity==4,1,0)
 
-###############################################################################################################
-
+#################################################################
 ### Nutrition ####
 
 muac_presence_analysis<-overall_muac_data %>% 
@@ -376,9 +374,9 @@ data$nut_severity<-recode(data$nut_score,
 
 data$nut_sev_high<-ifelse(data$nut_severity==3|data$nut_severity==4,1,0)
 
-###############################################################################################################
+#################################################################
 
-### Education
+### Education EiE ####
 
 education_analysis<-overall_hh_roster %>% 
   filter(!is.na(current_year_enrolled))
@@ -451,9 +449,8 @@ data$edu_severity<-recode(data$edu_score,
 data$edu_sev_high<-ifelse(data$edu_severity==3|data$edu_severity==4,1,0)
 
 
-###############################################################################################################
-
-### Health
+#################################################################
+### Health ####
 
 # #deaths under 5 years age
 # overall_death_roster$deaths_under5<-ifelse(overall_death_roster$hh_died_age<5,1,0)
@@ -515,13 +512,13 @@ data$health_severity<-recode(data$health_score,
 
 data$health_sev_high<-ifelse(data$health_severity==3|data$health_severity==4,1,0)
 
-###############################################################################################################
-# number sectoral needs
+#################################################################
+# number sectoral needs ####
 
 data$total_sectoral_needs<-coerc(data[["fsac_sev_high"]])+coerc(data[["prot_sev_high"]])+coerc(data[["esnfi_sev_high"]])+coerc(data[["wash_sev_high"]])+coerc(data[["nut_sev_high"]])+coerc(data[["edu_sev_high"]])+coerc(data[["health_sev_high"]])
 
 
-###############################################################################################################
+#################################################################
 
 ### LSCI - coping strategies ####
 
@@ -534,9 +531,14 @@ data$lcsi_severity<-recode(data$lcsi_category,
                            'moderately_insecure'='severe';
                            'severely_insecure'='extreme'")   
 
-###############################################################################################################
+#################################################################
+
+## Grouping indicators ####
 
 
+
+## Disaggregation variables #####
+## Need to group these into place
 
 
 # Adjust displacement status
