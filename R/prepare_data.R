@@ -1,41 +1,20 @@
-library(tidyverse)
-library(car)
-library(readxl)
-# character operation
-ch<-as.character
-chr<-as.character
+# Title: Preparation of data for woa survey
+# Authors: Sayed Nabizada, Christopher Jarvis, 
+# Date created: 20/09/2019
+# Date last changed: 20/09/2019
+# Purpose: This script is for recoding variables in the whole of 
+#          of Afghanistan survey data
+#          indicators and composite scores are created. 
 
-coerc<-function(x){as.numeric(chr(x))}
+# setup analysis environment
+source("./R/source.R")
 
-###############################################################################################################
-# function
-# recode_TF<-function(x){
-#   x<-x %>% as.character
-#   x<-gsub(" ","",x)
-#   x[x==TRUE]<-
-#     x[x=="yes"]<-1
-#   x[x=="no"]<-0
-#   x[x==FALSE]<-0
-#   x[is.na(x)]<-0
-#   return(x)
-# }]
+
 
 ###############################################################################################################
 # load data
 
-data <- read_excel("./input/data/clean/WoA_MSNA_19_clean_master.xlsx", sheet = "MSNA_AFG_19_parent_sheet", na = c("","NA"))
-# names(data)<-to_alphanumeric_lowercase(names(data))
-overall_muac_data <- read_excel("./input/data/clean/WoA_MSNA_19_clean_master.xlsx", sheet = "MSNA_AFG_19_muac" , na = c("","NA"))
-overall_hh_roster <- read_excel("./input/data/clean/WoA_MSNA_19_clean_master.xlsx", sheet = "MSNA_AFG_19_hh_roster" , na = c("","NA"))
-overall_death_roster <- read_excel("./input/data/clean/WoA_MSNA_19_clean_master.xlsx", sheet = "MSNA_AFG_19_hh_death_roster" , na = c("","NA"))
-overall_left_roster <- read_excel("./input/data/clean/WoA_MSNA_19_clean_master.xlsx", sheet = "MSNA_AFG_19_hh_left_roster" , na = c("","NA"))
-
-
-# data <- read.csv("data/data_with_strata.csv",stringsAsFactors=F,na.strings = c("", "NA"))
-# overall_muac_data <- read.csv("data/muac.csv",stringsAsFactors=F,na.strings = c("", "NA"))
-# overall_hh_roster <- read.csv("data/hh_roster.csv",stringsAsFactors=F,na.strings = c("", "NA"))
-# overall_death_roster <- read.csv("data/death_roster.csv",stringsAsFactors=F,na.strings = c("", "NA"))
-# overall_left_roster <- read.csv("data/left_roster.csv",stringsAsFactors=F,na.strings = c("", "NA"))
+data <- read_excel(master_data, sheet = "MSNA_AFG_19_parent_sheet", na = c("","NA"))
 
 
 ###############################################################################################################
