@@ -92,6 +92,9 @@ data <- data %>%
 
 ### Protection ###
 
+# First setup the variables required to calculate the indicators and then calculate them
+# This way around if the weights are changed then it's all in one place.
+
 # protection incidents
 ######################
 
@@ -118,25 +121,7 @@ less_severe_prot_incidents_vars <-c(
 data$severe_prot_incidents <- comp_score(data, severe_prot_incidents_vars)
 data$less_severe_prot_incidents <- comp_score(data, less_severe_prot_incidents_vars)
 
-data <- data %>% 
-  mutate(
-    prot_incident_class = case_when(
-      severe_prot_incidents >= 1 ~ 3,
-      severe_prot_incidents == 0 & data$less_severe_prot_incidents >= 1 ~ 2,
-      TRUE ~ 0),
-    # violence targeting women, girls, boys
-    sgbv_incidents_class = case_when(
-      other_incidents.sgbv == 1 ~ 2,
-      TRUE ~ 0
-      ),
-    # children working unsafe conditions
-    children_work_safety_class = case_when(
-      children_work_safety =='yes' ~ 1,
-      TRUE ~ 0
-      )
-  )
-
-# protection concerens
+# protection concerns
 ######################
 
 severe_prot_concerns_vars <- c(
@@ -156,23 +141,9 @@ less_severe_prot_concerns_vars <- c(
 data$severe_prot_concerns <- comp_score(data, severe_prot_concerns_vars)
 data$less_severe_prot_concerns <- comp_score(data, less_severe_prot_concerns_vars)
 
-data <-  data %>% 
-  mutate(
-    prot_concerns_class = case_when(
-      severe_prot_concerns >= 1 ~ 3,
-      severe_prot_concerns == 0 & data$less_severe_prot_concerns >= 1 ~ 2,
-      TRUE ~ 0
-    ),
-  # hh members injured conflict or nat disaster
-    injuries_class = case_when(
-      adult_injuries_cause %in% c('conflict', 'natural_disaster') |
-      child_injuries_cause %in% c('conflict', 'natural_disaster' ~ 3,
-      TRUE ~ 0)
-    )
-  )
-
-
 # explosive hazards
+######################
+
 severe_explosive_hazards_vars <- c(
   "explosive_impact.injury_death", 
   "explosive_impact.access_services"
@@ -186,27 +157,59 @@ less_severe_explosive_hazards_vars <- c(
 data$severe_explosive_hazards <- comp_score(data, severe_explosive_hazards_vars)
 data$less_severe_explosive_hazards <- comp_score(data, less_severe_explosive_hazards_vars)
 
-data <- data %>% 
-  mutate(
-    prot_explosive_hazards_class = case_when(
-      severe_explosive_hazards >= 1 ~ 3,
-      severe_explosive_hazards == 0 & less_severe_explosive_hazards >=1 ~ 2,
-      TRUE ~ 0
-    )
-  )
-
 
 # tazkira
+######################
 
 tazkira_total_vars <- c(
   "adult_tazkira", 
   "child_tazkira")
-data$tazkira_total<-comp_score(data, tazkira_total_vars)
-
-data$tazkira_class<-ifelse(data$tazkira_total==0,2,ifelse(data$tazkira_total>0 & data$tazkira_total< data$hh_size,1,0))
-data$tazkira_class[is.na(data$tazkira_class)] <- 0
+data$tazkira_total <- comp_score(data, tazkira_total_vars)
 
 # Protection Severity Score
+
+## Weights
+data <- data %>% 
+  mutate(
+    prot_incident_class = case_when(
+      severe_prot_incidents >= 1 ~ 3,
+      severe_prot_incidents == 0 & data$less_severe_prot_incidents >= 1 ~ 2,
+      TRUE ~ 0),
+    # violence targeting women, girls, boys
+    sgbv_incidents_class = case_when(
+      other_incidents.sgbv == 1 ~ 2,
+      TRUE ~ 0
+    ),
+    # children working unsafe conditions
+    children_work_safety_class = case_when(
+      children_work_safety =='yes' ~ 1,
+      TRUE ~ 0
+    ),
+    prot_concerns_class = case_when(
+      severe_prot_concerns >= 1 ~ 3,
+      severe_prot_concerns == 0 & data$less_severe_prot_concerns >= 1 ~ 2,
+      TRUE ~ 0
+    ),
+    # hh members injured conflict or nat disaster
+    injuries_class = case_when(
+      adult_injuries_cause %in% c('conflict', 'natural_disaster') |
+      child_injuries_cause %in% c('conflict', 'natural_disaster') ~ 3,
+      TRUE ~ 0
+    ),
+    prot_explosive_hazards_class = case_when(
+      severe_explosive_hazards >= 1 ~ 3,
+      severe_explosive_hazards == 0 & less_severe_explosive_hazards >=1 ~ 2,
+      TRUE ~ 0
+    ),
+    tazkira_class = case_when(
+      tazkira_total == 0 ~ 2,
+      tazkira_total > 0 & tazkira_total < hh_size ~ 1,
+      )
+    )
+
+
+# Score
+
 prot_score_vars <- c(
   "prot_incident_class",
   "sgbv_incidents_class",
