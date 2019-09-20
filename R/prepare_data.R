@@ -13,7 +13,6 @@ source("./R/source.R")
 
 ###############################################################################################################
 # load data
-
 data <- read_excel(master_data, sheet = "MSNA_AFG_19_parent_sheet", na = c("","NA"))
 
 
@@ -21,46 +20,73 @@ data <- read_excel(master_data, sheet = "MSNA_AFG_19_parent_sheet", na = c("","N
 #  composite indicators #
 ###############################################################################################################
 
+# The composite indicators are a combination of different variables
+# each value within a variable has a score and these need to be 
+# coded for the different categories.
+# Then the variables can be summed in order to get the score
+
+# This will be done for multiple sectors.
+
 ### Food Security & Agriculture ####
 
 # FCS
-data$fcs_category_class<-recode(data$fcs_category,
-                                "'poor'=4;
-                                'borderline'=2;
-                                'acceptable'=0")
+data <- data %>%  
+  mutate(
+    # FCS
+    fcs_category_class = recode(
+      fcs_category,
+      "poor" = 4,
+      "borderline" = 2,
+      "acceptable" = 0
+      ),
+    # HHS
+    hhs_category_class = recode(
+      hhs_category,
+      "severe_hunger" = 4,
+      "moderate_hunger" = 2,
+      "little_hunger" = 0
+      ),
+    # Food Source
+    food_source_class = case_when(
+      food_source %in% c('gift', 'assistance') ~ 2, 
+      food_source == 'borrowed' ~1,
+      TRUE ~ 0
+      ),
+    # ag impact
+    ag_impact_class = case_when(
+      agricultural_impact_how == '76_100' ~ 3,
+      agricultural_impact_how == '51_75' ~ 1,
+      agricultural_impact %in% c('no', 'not_applicable') ~ 0,
+      agricultural_impact_how %in% c('0_25', '26_50' ) ~ 0
+      ),
+    # livestock impact
+    ls_impact_class = case_when(
+      livestock_impact_how.livestock_died == 1 | 
+        livestock_impact_how.left_unattended == 1 ~ 2, 
+      livestock_impact_how.livestock_ill == 1 |
+        livestock_impact_how.less_milk == 1 ~ 1,
+      livestock_impact == 0 ~ 0,
+      TRUE ~ 0,
+      is.na(livestock_impact) ~ NA_real_
+      ),
+    )
 
-data$fcs_category_class[is.na(data$fcs_category_class)] <- 0
+fsac_vars <- c("fcs_category_class", "hhs_category_class", "food_source_class", "ag_impact_class", "ls_impact_class")
+data$fsac_score <- comp_score(data, fsac_vars)
 
-# HHS
-data$hhs_category_class<-recode(data$hhs_category,
-                                "'severe_hunger'=4;
-                                'moderate_hunger'=2;
-                                'little_hunger'=0")
-
-# Food Source
-data$food_source_class<-ifelse(data$food_source == 'gift' | data$food_source == 'assistance', 2, 
-                               ifelse(data$food_source == 'borrowed',1,0))
-
-# ag impact
-data$ag_impact_class<-ifelse(data$agricultural_impact_how == '76_100', 3, 
-                             ifelse(data$agricultural_impact_how == '51_75',1,0))
-data$ag_impact_class[is.na(data$ag_impact_class)] <- 0
-
-# livestock impact
-data$ls_impact_class<-ifelse(data$livestock_impact_how.livestock_died == 1 | data$livestock_impact_how.left_unattended==1, 2, 
-                             ifelse(data$livestock_impact_how.livestock_ill == 1 | data$livestock_impact_how.less_milk == 1,1,0))
-data$ls_impact_class[is.na(data$ls_impact_class)] <- 0
-
-# FSAC Severity Score
-data$fsac_score<-coerc(data[["fcs_category_class"]])+coerc(data[["hhs_category_class"]])+coerc(data[["food_source_class"]])+coerc(data[["ag_impact_class"]])+coerc(data[["ls_impact_class"]])
-
-data$fsac_severity<-recode(data$fsac_score,
-                           "0:1='1';
-                           2:3='2';
-                           4:7='3';
-                           8:16='4'")   
-
-data$fsac_sev_high<-ifelse(data$fsac_severity==3|data$fsac_severity==4,1,0)
+data <- data %>% 
+  mutate(
+    fsac_severity = case_when(
+      fsac_score <= 1 ~ 1, 
+      fsac_score <= 3 ~ 2,
+      fsac_score <= 7 ~ 3,
+      fsac_score <= 16 ~ 4,
+    ),
+    fsac_sev_high = case_when(
+      fsac_severity <= 2 ~ 0,
+      fsac_severity <= 4 ~ 1
+      )
+    )
 
 ###############################################################################################################
 
