@@ -71,7 +71,7 @@ data <- data %>%
       livestock_impact == 0 ~ 0,
       TRUE ~ 0,
       is.na(livestock_impact) ~ NA_real_
-      ),
+      )
     )
 
 fsac_vars <- c("fcs_category_class", "hhs_category_class", "food_source_class", "ag_impact_class", "ls_impact_class")
@@ -83,7 +83,7 @@ data <- data %>%
       fsac_score <= 1 ~ 1, 
       fsac_score <= 3 ~ 2,
       fsac_score <= 7 ~ 3,
-      fsac_score <= 16 ~ 4,
+      fsac_score <= 16 ~ 4
     ),
     fsac_sev_high = case_when(
       fsac_severity <= 2 ~ 0,
@@ -92,7 +92,6 @@ data <- data %>%
     )
 
 
-summ(mtcars)
 
 
 ##################################################################
@@ -206,7 +205,7 @@ data <- data %>%
     ),
     tazkira_class = case_when(
       tazkira_total == 0 ~ 2,
-      tazkira_total > 0 & tazkira_total < hh_size ~ 1,
+      tazkira_total > 0 & tazkira_total < hh_size ~ 1
       )
     )
 
@@ -264,16 +263,16 @@ data$blankets_class<-ifelse(data$blankets_number > data$hh_size,3,0)
 data$blankets_class[is.na(data$blankets_class)] <- 0
 
 # basic needs
-data$sleeping_mats <- recode(data$sleeping_mats, " 'yes' = 1; 'no' = 0")
-data$tarpaulin <- recode(data$tarpaulin, " 'yes' = 1; 'no' = 0")
-data$cooking_pots <- recode(data$cooking_pots, " 'yes' = 1; 'no' = 0")
-data$stainless_steel <- recode(data$stainless_steel, " 'yes' = 1; 'no' = 0")
-data$water_storage <- recode(data$water_storage, " 'yes' = 1; 'no' = 0")
-data$hygiene_sanitation <- recode(data$hygiene_sanitation, " 'yes' = 1; 'no' = 0")
+data$sleeping_mats <- car::recode(data$sleeping_mats, " 'yes' = 1; 'no' = 0")
+data$tarpaulin <- car::recode(data$tarpaulin, " 'yes' = 1; 'no' = 0")
+data$cooking_pots <- car::recode(data$cooking_pots, " 'yes' = 1; 'no' = 0")
+data$stainless_steel <- car::recode(data$stainless_steel, " 'yes' = 1; 'no' = 0")
+data$water_storage <- car::recode(data$water_storage, " 'yes' = 1; 'no' = 0")
+data$hygiene_sanitation <- car::recode(data$hygiene_sanitation, " 'yes' = 1; 'no' = 0")
 
 data$basic_needs_total<-coerc(data[["sleeping_mats"]])+coerc(data[["tarpaulin"]])+coerc(data[["cooking_pots"]])+coerc(data[["stainless_steel"]])+coerc(data[["water_storage"]])+coerc(data[["hygiene_sanitation"]])
 
-data$basic_needs_score<-recode(data$basic_needs_total,
+data$basic_needs_score<-car::recode(data$basic_needs_total,
                                "0:2=3;
                                3:5=2;
                                6=0")  
@@ -281,7 +280,7 @@ data$basic_needs_score<-recode(data$basic_needs_total,
 # ESNFI Severity Score
 data$esnfi_score<-coerc(data[["shelter_class"]])+coerc(data[["shelter_damage_class"]])+coerc(data[["tenancy_class"]])+coerc(data[["blankets_class"]])+coerc(data[["basic_needs_score"]])
 
-data$esnfi_severity<-recode(data$esnfi_score,
+data$esnfi_severity<-car::recode(data$esnfi_score,
                             "0:2='1';
                             3:6='2';
                             7:9='3';
@@ -294,7 +293,7 @@ data$esnfi_sev_high<-ifelse(data$esnfi_severity==3|data$esnfi_severity==4,1,0)
 ### WASH ####
 
 # water source #
-data$water_source_class<-recode(data$water_source,
+data$water_source_class<-car::recode(data$water_source,
                                 "'surface_water'=3;
                                 'water_trucking'=2;
                                 'spring_unprotected'=2;
@@ -325,7 +324,7 @@ data$water_distance_class<-ifelse(data$water_distance == 'over_1km'| data$water_
 # WASH Severity Score
 data$wash_score<-coerc(data[["water_source_class"]])+coerc(data[["water_barriers_class"]])+coerc(data[["soap_class"]])+coerc(data[["latrine_class"]])+coerc(data[["waste_disposal_class"]])+coerc(data[["water_distance_class"]])
 
-data$wash_severity<-recode(data$wash_score,
+data$wash_severity<-car::recode(data$wash_score,
                            "0:2='1';
                            3:5='2';
                            6:8='3';
@@ -367,7 +366,7 @@ data$nut_score_hh_w_muac<-coerc(data[["muac_score"]])+coerc(data[["dietary_div_s
 data$nut_score<-data$nut_score_hh_w_muac
 data$nut_score[is.na(data$nut_score)] <- 0
 
-data$nut_severity<-recode(data$nut_score,
+data$nut_severity<-car::recode(data$nut_score,
                           "0:2='1';
                           3:5='2';
                           6:8='3';
@@ -413,7 +412,7 @@ education_analysis_hh$shock_class<-ifelse(education_analysis_hh$count_shock >= 1
 # percent children enrolled or attending
 education_analysis_hh$percent_enrolled= coerc(education_analysis_hh[["count_enrolled_attending"]])/coerc(education_analysis_hh[["count_school_child"]])
 
-education_analysis_hh$enroll_perc_class<-recode(education_analysis_hh$percent_enrolled,
+education_analysis_hh$enroll_perc_class<-car::recode(education_analysis_hh$percent_enrolled,
                                                 "0:0.249=1;
                                                 0.25:0.499=2;
                                                 0.5:0.749=3;
@@ -444,7 +443,7 @@ data$edu_score_hh_w_schoolage<-coerc(data[["enroll_perc_class"]])+coerc(data[["s
 data$edu_score<-data$edu_score_hh_w_schoolage
 data$edu_score[is.na(data$edu_score)] <- 0
 
-data$edu_severity<-recode(data$edu_score,
+data$edu_severity<-car::recode(data$edu_score,
                           "0:3='1';
                           4:6='2';
                           7:8='3';
@@ -508,7 +507,7 @@ data$birth_location_class[is.na(data$birth_location_class)] <- 0
 # Health Severity Score
 data$health_score<- coerc(data[["health_facility_barriers_class"]])+coerc(data[["health_facility_dist_class"]])+coerc(data[["health_facility_affected_class"]])+coerc(data[["health_priority_need_class"]])+coerc(data[["behavior_change_cause_class"]])+coerc(data[["birth_location_class"]])
 
-data$health_severity<-recode(data$health_score,
+data$health_severity<-car::recode(data$health_score,
                              "0:2='1';
                              3:5='2';
                              6:8='3';
@@ -529,7 +528,7 @@ data$total_sectoral_needs<-coerc(data[["fsac_sev_high"]])+coerc(data[["prot_sev_
 # coping severity
 data$lcsi_score
 
-data$lcsi_severity<-recode(data$lcsi_category,
+data$lcsi_severity<-car::recode(data$lcsi_category,
                            "'food_secure'='minimal';
                            'marginally_insecure'='stress';
                            'moderately_insecure'='severe';
