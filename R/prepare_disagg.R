@@ -4,7 +4,7 @@
 # Date last changed: 20/09/2019
 # Purpose: This script is for recoding the disagg variables in the whole of 
 #          of Afghanistan survey data
-#          indicators and composite scores are created. 
+#          indicators and composite scores are created elsewhere. 
 
 
 
@@ -12,8 +12,7 @@
 
 data <- data %>%
   mutate(
-    # Population group
-    
+    # Population group - still needs to be determined. 
     # Region
     region_disagg = region,
     # Province
@@ -78,16 +77,33 @@ data <- data %>%
     # Host vs. Displaced (IDPs and returnees)
     host_disagg = case_when(
       final_displacement_status == "host" ~ "host",
-      final_displacement_status %in% c("recent_idps", "non_recent_idp", "returnee" ~ "displaced",
-                                       TRUE ~ NA_character_
-      ),
-      disp_length_disagg = case_when(
-        final_displacement_status == "recent_idps" ~ "recent",
-        idp_displ_year <= 1 ~ "prolonged",
-        idp_displ_year >= 2 ~ "protracted",
-        TRUE ~ NA_character_
-      ),
-      
-      
+      final_displacement_status %in% c("recent_idps", "non_recent_idp", "returnee") ~ "displaced",
+      TRUE ~ NA_character_
+    ),
+    # IDP Displacement Length
+    disp_length_disagg = case_when(
+      final_displacement_status == "recent_idps" ~ "recent",
+      idp_displ_year <= 1 ~ "prolonged",
+      idp_displ_year >= 2 ~ "protracted",
+      TRUE ~ NA_character_
+    ),
+    # HoH sex version 2
+    hoh__sex2_disagg = case_when(
+      hoh_sex =="male" | hoh_marital_status == "married" ~ "male",
+      hoh_sex == "female" & hoh_marital_status %in% c("single", "widowed", "divorced") ~ "female",
+      TRUE ~ NA_character_
+    ),
+    # Behavioural change
+    behav_change_disagg = case_when(
+      adult_behavior_change == "yes" | child_behavior_change >= 1 ~ "some behavioural change",
+      adult_behavior_change == "no" & child_behavior_change == 0 ~ "some behavioural change",
+      TRUE ~ NA_character_
+    ),
+    # Acute Watery Diarrhea (AWD)
+    awd_disagg = case_when(
+      diarrhea_case >= 1 ~ "awd present",
+      diarrhea_case == 0 ~ "no awd",
+      adult_behavior_change == "no" & child_behavior_change == 0 ~ "some behavioural change",
+      TRUE ~ NA_character_
     )
-    
+)
