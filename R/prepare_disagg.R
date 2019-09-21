@@ -1,7 +1,7 @@
 # Title: Preparation of data for woa survey
 # Authors: Sayed Nabizada, Christopher Jarvis, 
-# Date created: 20/09/2019
-# Date last changed: 20/09/2019
+# Date created: 21/09/2019
+# Date last changed: 21/09/2019
 # Purpose: This script is for recoding the disagg variables in the whole of 
 #          of Afghanistan survey data
 #          indicators and composite scores are created elsewhere. 
