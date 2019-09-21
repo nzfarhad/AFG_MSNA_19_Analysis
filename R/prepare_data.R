@@ -22,6 +22,17 @@ overall_hh_roster <- read_excel(master_data, sheet = "MSNA_AFG_19_hh_roster" , n
 overall_death_roster <- read_excel(master_data, sheet = "MSNA_AFG_19_hh_death_roster" , na = c("","NA"))
 overall_left_roster <- read_excel( master_data, sheet = "MSNA_AFG_19_hh_left_roster" , na = c("","NA"))
 
+
+rename1 <- function(d1) {
+  sub("/", ".", names(d1))
+} 
+names(data) <- rename1(data)
+names(overall_muac_data ) <- rename1(overall_muac_data )
+names(overall_hh_roster ) <- rename1(overall_hh_roster )
+names(overall_death_roster ) <- rename1(overall_death_roster)
+names(overall_left_roster ) <- rename1(overall_left_roster)
+
+
 #  composite indicators #
 # The composite indicators are a combination of different variables
 # each value within a variable has a score and these need to be 
@@ -348,7 +359,7 @@ muac_presence_analysis<-overall_muac_data %>%
 muac_presence_analysis$malnutrition_present<-ifelse(muac_presence_analysis$number_muac_mod_mal>=1 | muac_presence_analysis$number_muac_sev_mal>=1,1,0) 
 
 # join with parent table  
-data<-full_join(data, muac_presence_analysis,by = c("uuid"="_submission__uuid"))
+data<-full_join(data, muac_presence_analysis,by = c("_uuid"="_submission__uuid"))
 
 
 # reported malnourishment (mod & sev muac)
@@ -426,7 +437,7 @@ education_analysis_hh$count_not_enrolled_class<-ifelse(education_analysis_hh$cou
 
 
 # join with parent table  
-data<-full_join(data, education_analysis_hh,by = c("uuid"="_submission__uuid"))
+data<-full_join(data, education_analysis_hh,by = c("_uuid"="_submission__uuid"))
 
 # reasons not attending
 data$severe_not_attending<-coerc(data[["boy_unattendance_reason.insecurity"]])+coerc(data[["boy_unattendance_reason.child_works_instead"]])+coerc(data[["girl_unattendance_reason.insecurity"]])+coerc(data[["girl_unattendance_reason.child_works_instead"]])
@@ -470,7 +481,7 @@ data$edu_sev_high<-ifelse(data$edu_severity==3|data$edu_severity==4,1,0)
 #             number_death_over5=sum(deaths_over5))
 # 
 # # join with parent dataset
-# data<-full_join(data, health_analysis,by = c("uuid"="_submission__uuid"))
+# data<-full_join(data, health_analysis,by = c("_uuid"="_submission__uuid"))
 # 
 # #deaths under 5 yrs age weight
 # data$number_death_under5_class<-ifelse(data$number_death_under5 >= 1, 3,0)
@@ -549,7 +560,7 @@ data$lcsi_severity<-car::recode(data$lcsi_category,
 
 
 # Adjust displacement status
-non_displ_data <- read.csv("input/Non_Displaced_List.csv",stringsAsFactors=F,na.strings = c("", "NA"))
+non_displ_data <- read.csv("input/Non_Displaced_Host_List_v2.csv",stringsAsFactors=F,na.strings = c("", "NA"))
 data<-full_join(data, non_displ_data,by = c("district"="district"))
   data$final_displacement_status_non_displ<-ifelse(data$final_displacement_status=='non_displaced'|data$final_displacement_status=='host', data$non_displ_class,data$final_displacement_status)
 

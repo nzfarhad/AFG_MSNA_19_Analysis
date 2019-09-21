@@ -5,6 +5,7 @@
 audit/*
 !audit/.gitkeep
 input/data/clean/*.xlsx
+input/data/raw/*.xlsx
 input/data/recoded/data_with_strata.csv
 output/results/*
 data_cleaning/*
