@@ -101,8 +101,8 @@ data <- data %>%
     ),
     # Acute Watery Diarrhea (AWD)
     awd_disagg = case_when(
-      diarrhea_case >= 1 ~ "awd present",
-      diarrhea_case == 0 ~ "no awd",
+      diarrhea_cases >= 1 ~ "awd present",
+      diarrhea_cases == 0 ~ "no awd",
       adult_behavior_change == "no" & child_behavior_change == 0 ~ "some behavioural change",
       TRUE ~ NA_character_
     )

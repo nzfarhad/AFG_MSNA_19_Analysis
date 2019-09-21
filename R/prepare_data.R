@@ -17,6 +17,10 @@ coerc<-function(x){as.numeric(chr(x))}
 
 # load data 
 data <- read_excel(master_data, sheet = "MSNA_AFG_19_parent_sheet", na = c("","NA"))
+overall_muac_data <- read_excel(master_data, sheet = "MSNA_AFG_19_muac" , na = c("","NA"))
+overall_hh_roster <- read_excel(master_data, sheet = "MSNA_AFG_19_hh_roster" , na = c("","NA"))
+overall_death_roster <- read_excel(master_data, sheet = "MSNA_AFG_19_hh_death_roster" , na = c("","NA"))
+overall_left_roster <- read_excel( master_data, sheet = "MSNA_AFG_19_hh_left_roster" , na = c("","NA"))
 
 #  composite indicators #
 # The composite indicators are a combination of different variables
@@ -653,5 +657,6 @@ data <- data %>%
   
 )
 
+source("r/prepare_disagg.R")
 
 write.csv(data, "./input/data/recoded/data_with_strata.csv", row.names = F)
