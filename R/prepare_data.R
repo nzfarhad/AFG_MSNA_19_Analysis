@@ -586,6 +586,17 @@ min_die_vars <- c(
 
 data$min_die_num <- comp_score(data, min_die_vars)
 
+priority_nfi_vars <- c(
+  "sleeping_mats",
+  "tarpaulin",
+  "cooking_pots",
+  "stainless_steel",
+  "water_storage",
+  "hygiene_sanitation"
+)
+  
+data$priority_nfi_num <- comp_score(data, priority_nfi_vars)
+  
  # Adjust displacement status as more information in other data
 non_displ_data <- read.csv("input/Non_Displaced_Host_List_v2.csv",stringsAsFactors=F,na.strings = c("", "NA"))
 data<-full_join(data, non_displ_data,by = c("district"="district"))
@@ -787,14 +798,17 @@ data <- data %>%
       blankets_people_cal < 1 ~ "<1",
       blankets_people_cal >= 1 ~ "1+",
       TRUE ~ NA_character_
+    ),
+    priority_nfi_cal = case_when(
+      priority_nfi_num <= 1 ~ "0-1",
+      priority_nfi_num <= 3 ~ "2-3",
+      priority_nfi_num <= 5 ~ "4-5",
+      priority_nfi_num <= 6 ~ "6",
+      TRUE ~ NA_character_
     )
     
-    
-    
-    
-  )
+)
 
-table(data$blankets_people_cal)
 #Recoding new variables
 
 data$hh_no_tazkira <- ifelse(data$tazkira_total < 1, "Tazkira_No", "Tazkira_Yes")
