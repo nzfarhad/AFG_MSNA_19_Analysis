@@ -562,7 +562,7 @@ food_water_rent_vars <- c(
   "rent_exp",
   "total_income"
 )
-data$food_water_rent_num <- comp_score(data, food_water_rent_varsall_expense_vars)
+data$food_water_rent_num <- comp_score(data, food_water_rent_vars)
 
 
 
@@ -572,11 +572,20 @@ all_expenses_vars <- c(
   "rent_exp",
   "fuel_exp",
   "debt_exp")
-data$all_expenses <- comp_score(data, all_expense_vars)
+data$all_expenses <- comp_score(data, all_expenses_vars)
 
-## urban 
-## infromal settlement
-## displacement status
+
+min_die_vars <- c(
+    "minimum_dietary_diversity.staples",
+    "minimum_dietary_diversity.legumes",
+    "minimum_dietary_diversity.dairy",
+    "minimum_dietary_diversity.meat",
+    "minimum_dietary_diversity.eggs",
+    "minimum_dietary_diversity.vitamin_a_veg",
+    "minimum_dietary_diversity.other_veg")
+
+data$min_die_num <- comp_score(data, min_die_vars)
+
  # Adjust displacement status as more information in other data
 non_displ_data <- read.csv("input/Non_Displaced_Host_List_v2.csv",stringsAsFactors=F,na.strings = c("", "NA"))
 data<-full_join(data, non_displ_data,by = c("district"="district"))
@@ -754,28 +763,25 @@ data <- data %>%
       total_income > 0 ~ debt_exp / total_income,
       TRUE ~ NA_real_
     ),
-    basic_needs_cal = = case_when(
+    basic_needs_cal = case_when(
       food_water_rent_num == 0 ~ 0,
       food_water_rent_num > 0 ~ food_water_rent_num / total_income,
       TRUE ~ NA_real_
     ),
+    minimum_dietary_diversity_cal = case_when(
+      min_die_num >= 4 ~ "4 food groups",
+      min_die_num < 4 ~  "<4 food groups",
+      TRUE ~ NA_character_
+    ),
+    rooms_hh_cal = case_when(
+      rooms == 0 ~ 0,
+      rooms > 0 ~    rooms / hh_size,
+      TRUE ~ NA_real_)
     
     
     
     
   )
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 #Recoding new variables
