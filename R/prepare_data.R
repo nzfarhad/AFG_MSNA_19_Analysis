@@ -776,6 +776,10 @@ data <- data %>%
     rooms_hh_cal = case_when(
       rooms == 0 ~ 0,
       rooms > 0 ~    rooms / hh_size,
+      TRUE ~ NA_real_),
+    blankets_people_cal = case_when(
+      blankets_number == 0 ~ 0,
+      blankets_number > 0 ~    blankets_number / hh_size,
       TRUE ~ NA_real_)
     
     
@@ -804,8 +808,8 @@ data$enrolled_attending <- ifelse(data$count_enrolled_attending > 0, "Enrolled_a
 
 
 
-data$count_current_enrolled_avg <- coerc(data[["count_current_enrolled"]]) / data$edu_age_boys_girls
-data$count_current_attending_avg <- coerc(data[["count_current_attending"]]) / data$edu_age_boys_girls
+data$count_current_enrolled_avg <- coerc(data[["count_current_enrolled"]]) / data$edu_age_boys_girls_num
+data$count_current_attending_avg <- coerc(data[["count_current_attending"]]) / data$edu_age_boys_girls_num
 
 
  
