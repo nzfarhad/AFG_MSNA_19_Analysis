@@ -776,18 +776,25 @@ data <- data %>%
     rooms_hh_cal = case_when(
       rooms == 0 ~ 0,
       rooms > 0 ~    rooms / hh_size,
-      TRUE ~ NA_real_),
+      TRUE ~ NA_real_
+    ),
     blankets_people_cal = case_when(
       blankets_number == 0 ~ 0,
       blankets_number > 0 ~    blankets_number / hh_size,
-      TRUE ~ NA_real_)
+      TRUE ~ NA_real_
+    ),
+    blankets_suff_cal = case_when(
+      blankets_people_cal < 1 ~ "<1",
+      blankets_people_cal >= 1 ~ "1+",
+      TRUE ~ NA_character_
+    )
     
     
     
     
   )
 
-
+table(data$blankets_people_cal)
 #Recoding new variables
 
 data$hh_no_tazkira <- ifelse(data$tazkira_total < 1, "Tazkira_No", "Tazkira_Yes")

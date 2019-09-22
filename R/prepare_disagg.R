@@ -88,7 +88,7 @@ data <- data %>%
       TRUE ~ NA_character_
     ),
     # HoH sex version 2
-    hoh__sex2_disagg = case_when(
+    hoh_sex2_disagg = case_when(
       hoh_sex =="male" | hoh_marital_status == "married" ~ "male",
       hoh_sex == "female" & hoh_marital_status %in% c("single", "widowed", "divorced") ~ "female",
       TRUE ~ NA_character_
