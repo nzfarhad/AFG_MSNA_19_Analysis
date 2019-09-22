@@ -45,39 +45,34 @@ filt <- d$school_age == "school age"
 tot_pop$perc_enrolled_previous <- sum(d[filt]$previous_year_enrolled, na.rm = TRUE)/nrow(d[filt,])
 tot_pop$perc_edu_removal <- sum(d[filt]$edu_removal_shock.no, na.rm = TRUE)/nrow(d[filt,])
 
-filt <- d$hh_member_age<=4
-d <- data
-tot_pop$perc_moderate <- sum(d[filt,]$number_muac_mod_mal, na.rm = TRUE)/nrow(d[filt,])
-tot_pop$perc_severe <- sum(d[filt,]$number_muac_sev_mal, na.rm = TRUE)/nrow(d[filt,])
-tot_pop$perc_muac125 <- sum(d[filt,]$min_muac>125, na.rm = TRUE)/nrow(d[filt,])
-tot_pop$perc_ruft_recpt <- sum(d[filt,]$ruft_reception, na.rm = TRUE)/nrow(d[filt,])
 
-data$age
-                           
+denom_ <- sum(data$age_0_4,na.rm = TRUE)
+tot_pop$perc_moderate <- sum(data$number_muac_mod_mal, na.rm = TRUE)/denom_
+tot_pop$perc_severe <- sum(data$number_muac_sev_mal, na.rm = TRUE)/denom_
+tot_pop$perc_muac125 <- sum(data$min_muac>125, na.rm = TRUE)/denom_
+tot_pop$perc_ruft_recpt <- sum(data$ruft_reception, na.rm = TRUE)/denom_
 
+filt <- data$min_muac < 115
+denom_ <- sum(data[filt,]$age_0_4,na.rm = TRUE)
+tot_pop$perc_ruft_recpt_115 <- sum(data[filt,]$ruft_reception, na.rm = TRUE)/denom_
 
+filt <- data$min_muac<= 115 & data$min_muac < 125
+denom_ <- sum(data[filt,]$age_0_4,na.rm = TRUE)
+tot_pop$perc_ruft_recpt_115_125 <- sum(data[filt,]$ruft_reception, na.rm = TRUE)/denom_
 
+filt <- data$min_muac >= 125
+denom_ <- sum(data[filt,]$age_0_4,na.rm = TRUE)
+tot_pop$perc_ruft_recpt_125 <- sum(data[filt,]$ruft_reception, na.rm = TRUE)/denom_
 
+fun1 <- function(x){
+  round(x*100,0)
+}
 
-
-
-# As a % of all children of school age (6-18)
-school_age_childs <- overall_hh_roster %>% 
-  filter(
-    male_6_12 == 1 | male_13_18 == 1 |
-    female_6_12 == 1 | female_13_18 == 1 
-  ) 
-  
-left_join(muac_presence_analysis, overall_hh_roster)   %>% nrow()
-
-muac_presence_analysis$number_muac_person
-
-# <4 years
+# Change the format
+tot_pop <-  tot_pop %>% 
+  mutate_at(vars(contains("perc")), fun1)
 
 
-overall_hh_roster$hh_member_age<6
-overall_hh_roster %>%  names()
-  
-  69/12
-  data$latrine
-  
+
+
+
