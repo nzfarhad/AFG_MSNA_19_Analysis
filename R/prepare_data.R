@@ -16,7 +16,7 @@ chr<-as.character
 coerc<-function(x){as.numeric(chr(x))}
 
 # load data 
-data <- read_excel(master_data, sheet = "MSNA_AFG_19_parent_sheet", na = c("","NA"))
+data <- read_excel(master_data, sheet = "MSNA_AFG_19_parent_sheet", na = c("","NA"), guess_max = 3000)
 overall_muac_data <- read_excel(master_data, sheet = "MSNA_AFG_19_muac" , na = c("","NA"))
 overall_hh_roster <- read_excel(master_data, sheet = "MSNA_AFG_19_hh_roster" , na = c("","NA"))
 overall_death_roster <- read_excel(master_data, sheet = "MSNA_AFG_19_hh_death_roster" , na = c("","NA"))
@@ -315,9 +315,14 @@ data$water_source_class<-car::recode(data$water_source,
                                 'other'=0")
 
 # water barriers
+data$water_barriers_class<-ifelse(data$water_sufficiency== 'insufficient' &
+                                    (data$water_barriers== 'too_far' |
+                                       data$water_barriers== 'high_risk' | 
+                                       data$water_barriers== 'social_restrictions'),
+                                  3,ifelse(data$water_sufficiency== 'insufficient',2,
+                                           ifelse(data$water_sufficiency== 'barely_sufficient',1,0)))
+
 data$water_barriers_class[is.na(data$water_barriers)] <- 0
-data$water_barriers_class<-ifelse(data$water_sufficiency== 'insufficient' & (data$water_barriers== 'too_far' | data$water_barriers== 'high_risk' | data$water_barriers== 'social_restrictions'),3,ifelse(data$water_sufficiency== 'insufficient',2,
-                                                                                                                                                                                                         ifelse(data$water_sufficiency== 'barely_sufficient',1,0)))
 
 # soap  
 data$soap_class<-ifelse(data$soap == 'yes_didnt_see' | data$soap == 'no', 1,0)
@@ -352,14 +357,15 @@ muac_presence_analysis<-overall_muac_data %>%
   summarize(number_muac_person=sum(person_muac),
             number_muac_mod_mal=sum(moderate_malnutrition),
             number_muac_sev_mal=sum(severe_malnutrition),
-            min_muac=min(muac_measurement))
-
+            min_muac=min(muac_measurement),
+            ruft_reception_num = sum(rutf_reception== "yes"),
+            ruft_reception = sum(rutf_reception== "yes")>=1)
 # Malnutrition present = 1, not present = 0
 
 muac_presence_analysis$malnutrition_present<-ifelse(muac_presence_analysis$number_muac_mod_mal>=1 | muac_presence_analysis$number_muac_sev_mal>=1,1,0) 
 
 # join with parent table  
-data<-full_join(data, muac_presence_analysis,by = c("_uuid"="_submission__uuid"))
+data<-full_join(data, muac_presence_analysis, by = c("uuid"="_submission__uuid"))
 
 
 # reported malnourishment (mod & sev muac)
@@ -437,7 +443,7 @@ education_analysis_hh$count_not_enrolled_class<-ifelse(education_analysis_hh$cou
 
 
 # join with parent table  
-data<-full_join(data, education_analysis_hh,by = c("_uuid"="_submission__uuid"))
+data<-full_join(data, education_analysis_hh,by = c("uuid"="_submission__uuid"))
 
 # reasons not attending
 data$severe_not_attending<-coerc(data[["boy_unattendance_reason.insecurity"]])+coerc(data[["boy_unattendance_reason.child_works_instead"]])+coerc(data[["girl_unattendance_reason.insecurity"]])+coerc(data[["girl_unattendance_reason.child_works_instead"]])
@@ -537,8 +543,6 @@ data$total_sectoral_needs<-coerc(data[["fsac_sev_high"]])+coerc(data[["prot_sev_
 ### LSCI - coping strategies ####
 
 # coping severity
-data$lcsi_score
-
 data$lcsi_severity<-car::recode(data$lcsi_category,
                            "'food_secure'='minimal';
                            'marginally_insecure'='stress';
@@ -596,14 +600,54 @@ priority_nfi_vars <- c(
 )
   
 data$priority_nfi_num <- comp_score(data, priority_nfi_vars)
-  
+
+child_vars <- c(
+  "males_0_2_total",
+  "males_3_5_total",
+  "females_0_2_total",
+  "females_3_5_total")
+data$children_under5 <- comp_score(data, child_vars)
+
+comp_ind_vars <- c(
+  "prot_sev_high",
+  "fsac_sev_high",
+  "esnfi_sev_high",
+  "wash_sev_high",
+  "nut_sev_high",
+  "edu_sev_high",
+  "health_sev_high"
+)
+data$comp_ind_sev <- comp_score(data, comp_ind_vars)
+
+## Age categories
+
+hh_group <- overall_hh_roster %>% 
+  mutate(
+    age_0_4 =  hh_member_age <=4,
+    age_0_14 =  hh_member_age <=14,
+    age_10_17 =  hh_member_age >= 10 & hh_member_age <=17,
+    age_15_64 =  hh_member_age >= 14 & hh_member_age <=64,
+    age_18_64 =  hh_member_age >= 18 & hh_member_age <=64,
+    age_65 =  hh_member_age >= 65
+  ) %>% 
+  group_by(`_submission__uuid`) %>% 
+  summarise(
+    age_0_4 = sum(age_0_4, na.rm = TRUE),
+    age_0_14 = sum(age_0_14, na.rm = TRUE),
+    age_10_17 = sum(age_10_17, na.rm = TRUE),
+    age_15_64 = sum(age_15_64, na.rm = TRUE),
+    age_18_64 = sum(age_18_64, na.rm = TRUE),
+    age_65 = sum(age_65, na.rm = TRUE)
+  )  
+
+data <- full_join(data, hh_group,by = c("uuid"="_submission__uuid"))
+
  # Adjust displacement status as more information in other data
 non_displ_data <- read.csv("input/Non_Displaced_Host_List_v2.csv",stringsAsFactors=F,na.strings = c("", "NA"))
 data<-full_join(data, non_displ_data,by = c("district"="district"))
   data$final_displacement_status_non_displ<-ifelse(data$final_displacement_status=='non_displaced'|data$final_displacement_status=='host', data$non_displ_class,data$final_displacement_status)
 
 # prev_displacement
-  
 data <- data %>% 
   mutate(
     # prev_displacement_num
@@ -699,51 +743,63 @@ data <- data %>%
     livestock_income_cal = case_when(
       livestock_income == 0 ~ 0,
       livestock_income > 0 ~ livestock_income / hh_size,
-      TRUE ~ NA_real_),
+      TRUE ~ NA_real_
+    ),
     rent_income_cal = case_when(
       rent_income == 0 ~ 0,
       rent_income > 0 ~ rent_income / hh_size,
-      TRUE ~ NA_real_),
+      TRUE ~ NA_real_
+    ),
     small_business_income_cal = case_when(
       small_business_income == 0 ~ 0,
       small_business_income > 0 ~ small_business_income / hh_size,
-      TRUE ~ NA_real_),
+      TRUE ~ NA_real_
+    ),
     unskill_labor_income_cal = case_when(
       unskill_labor_income == 0 ~ 0,
       unskill_labor_income > 0 ~    unskill_labor_income / hh_size,
-      TRUE ~ NA_real_),
+      TRUE ~ NA_real_
+    ),
     skill_labor_income_cal = case_when(
       skill_labor_income == 0 ~ 0,
       skill_labor_income > 0 ~    skill_labor_income / hh_size,
-      TRUE ~ NA_real_),
+      TRUE ~ NA_real_
+    ),
     formal_employment_income_cal = case_when(
       formal_employment_income == 0 ~ 0,
       formal_employment_income > 0 ~    formal_employment_income / hh_size,
-      TRUE ~ NA_real_),
+      TRUE ~ NA_real_
+    ),
     gov_benefits_income_cal = case_when(
       gov_benefits_income == 0 ~ 0,
       gov_benefits_income > 0 ~ gov_benefits_income / hh_size,
-      TRUE ~ NA_real_),
+      TRUE ~ NA_real_
+    ),
     hum_assistance_income_cal = case_when(
       hum_assistance_income == 0 ~ 0,
       hum_assistance_income > 0 ~ hum_assistance_income / hh_size,
-      TRUE ~ NA_real_),
+      TRUE ~ NA_real_
+    ),
     remittance_income_cal = case_when(
       remittance_income == 0 ~ 0,
       remittance_income > 0 ~ remittance_income / hh_size,
-      TRUE ~ NA_real_),
+      TRUE ~ NA_real_
+    ),
     loans_income_cal = case_when(
       loans_income == 0 ~ 0,
       loans_income > 0 ~    loans_income / hh_size,
-      TRUE ~ NA_real_),
+      TRUE ~ NA_real_
+    ),
     asset_selling_income_cal = case_when(
       asset_selling_income == 0 ~ 0,
       asset_selling_income > 0 ~    asset_selling_income / hh_size,
-      TRUE ~ NA_real_),
+      TRUE ~ NA_real_
+    ),
     total_income_cal = case_when(
       total_income == 0 ~ 0,
       total_income > 0 ~    total_income / hh_size,
-      TRUE ~ NA_real_),
+      TRUE ~ NA_real_
+    ),
     # Debt level
     debt_amount_cal = case_when(
       debt_amount == 0 ~ 0,
@@ -805,23 +861,128 @@ data <- data %>%
       priority_nfi_num <= 5 ~ "4-5",
       priority_nfi_num <= 6 ~ "6",
       TRUE ~ NA_character_
-    )
-    
+    ),
+    imp_energy_source1_cal = case_when(
+      energy_source %in% c("wood" , "animal_waste" , "paper_waste") ~ 1,
+      TRUE ~ 0
+    ),  
+    imp_energy_source2_cal = case_when(
+      energy_source %in% c("coal" , "charcoal" , "lpg" , "electricity") ~ 1,
+      TRUE ~ 0
+    ),  
+    diarrhea_cases_cal = case_when(
+      diarrhea_cases == 0 ~ 0,
+      diarrhea_cases > 0 ~    diarrhea_cases / children_under5,
+      TRUE ~ NA_real_
+    ), 
+    imp_water_source1_cal = case_when(
+      water_source %in% c("handpump_private", "handpump_public",
+                          "piped_public", "spring_protected") ~ 1,
+      TRUE ~ 0
+    ),  
+    imp_water_source2_cal = case_when(
+      water_source %in% c("spring_unprotected","surface_water"
+                          , "water_trucking", "other") ~ 1,
+      TRUE ~ 0
+    ),  
+    imp_san_source1_cal = case_when(
+      water_source %in% c("open", "pit_latrine_uncovered", 
+                          "other") ~ 1,
+      TRUE ~ 0
+    ),  
+    imp_san_source2_cal = case_when(
+      water_source %in% c("public_latrine", "pit_latrine_covered",
+                          "vip_latrine", "flush_toilet_open_drain",
+                          "flush_toilet_septic") ~ 1,
+      TRUE ~ 0
+    ),  
+    comp_ind_sev_2_call = case_when(
+      comp_ind_sev >= 2 ~ ">=2",
+      comp_ind_sev <2 ~ "<2",
+      TRUE ~ NA_character_
+    ),
+    dep_ratio_call =  case_when(
+      age_0_14 == 0 & age_65 == 0 ~ 0,
+      (age_0_14 > 0 | age_65 > 0) ~ 
+        sum(age_0_14,age_65, na.rm = TRUE)/sum(age_15_64,na.rm = TRUE),
+      TRUE ~ NA_real_
+    ),
+    female_lit_call =  case_when(
+      female_literacy == 0 ~ 0,
+      female_literacy == 0 ~ 
+        female_literacy/sum(females_11_17_total,females_18_plus_total, na.rm=TRUE),
+      TRUE ~ NA_real_
+    ),
+    male_lit_call =  case_when(
+      male_literacy == 0 ~ 0,
+      male_literacy == 0 ~ 
+        male_literacy/sum(males_11_17_total,males_18_plus_total, na.rm=TRUE),
+      TRUE ~ NA_real_
+    ),
+    adult_behavior_change_call =  case_when(
+      adult_behavior_change == "yes" ~ 1,
+      adult_behavior_change == "no" ~ 0,
+      TRUE ~ NA_real_
+    ),
+    child_behavior_change_call =  case_when(
+      child_behavior_change == "yes" ~ 1,
+      child_behavior_change == "no" ~ 0,
+      TRUE ~ NA_real_
+    ),
+    atleast_one_behav_change_call = case_when(
+      child_behavior_change_call == 0 & adult_behavior_change_call == 0 ~ 0,
+      child_behavior_change_call > 0 & adult_behavior_change_call > 0 ~ 1,
+      TRUE ~ NA_real_
+    ),
+    adults_working_call = case_when(
+      adults_working == 0 ~ 0,
+      adults_working > 0 ~ adults_working/age_18_64,
+      TRUE ~ NA_real_
+    ),
+    child_working_call = case_when(
+      children_working == 0 ~ 0,
+      children_working > 0 ~ children_working/age_10_17,
+      TRUE ~ NA_real_
+    ),
+    adult_tazkira_cal = case_when(
+      adult_tazkira == 0 ~ "0",
+      adult_tazkira >= 1 ~ ">=1",
+      TRUE ~ NA_character_
+    ),
+    child_tazkira_cal = case_when(
+      child_tazkira == 0 ~ "0",
+      child_tazkira >= 1 ~ ">=1",
+      TRUE ~ NA_character_
+    ),
+    child_tazkira_cal = case_when(
+      child_tazkira == 0 ~ "0",
+      child_tazkira >= 1 ~ ">=1",
+      TRUE ~ NA_character_
+    ),
+    any_tazkira_cal = case_when(
+      adult_tazkira == 0 & child_tazkira == 0~ "0",
+      adult_tazkira >= 1 | child_tazkira >= 1~ ">=1",
+      TRUE ~ NA_character_
+    ),
+    child_working_call = case_when(
+      children_working == 0 ~ 0,
+      children_working > 0 ~ children_working/age_10_17,
+      TRUE ~ NA_real_
+    ),
+    count_current_enrolled_avg = count_current_enrolled / edu_age_boys_girls_num,
+    count_current_attending_avg = count_current_attending / edu_age_boys_girls_num
 )
 
-#Recoding new variables
 
+
+
+#Recoding new variables
 data$hh_no_tazkira <- ifelse(data$tazkira_total < 1, "Tazkira_No", "Tazkira_Yes")
 
 data$muac_yes_no <- ifelse(data$muac_total > 0 & !is.na(data$min_muac)  ,"Yes","No")
-
-
-
-
 data$recent_non_recent <- ifelse(data$final_displacement_status_non_displ == "recent_idps", "recent_idps",
                                  ifelse(data$final_displacement_status_non_displ == "non_recent_idps", "non_recent_idps", NA ))
 data$edu_removal_shock_cal <-  ifelse(data$shock_class == 5, "Yes", "No") 
-
 data$enrolled_attending <- ifelse(data$count_enrolled_attending > 0, "Enrolled_and_Attending", "Not" ) 
 
 
@@ -829,8 +990,7 @@ data$enrolled_attending <- ifelse(data$count_enrolled_attending > 0, "Enrolled_a
 
 
 
-data$count_current_enrolled_avg <- coerc(data[["count_current_enrolled"]]) / data$edu_age_boys_girls_num
-data$count_current_attending_avg <- coerc(data[["count_current_attending"]]) / data$edu_age_boys_girls_num
+
 
 
  
