@@ -14,6 +14,22 @@ dmerge <- function (results, rows = c("repeat.var", "repeat.var.value"),
       x
     }) %>% as.data.frame(stringsAsFactors = F)
   }) %>% do.call(rbind, .)
+  
+
+  # deal with Na Disaggs
+  all_summary_statistics <- all_summary_statistics %>% 
+    filter(!is.na(numbers))
+  
+  #round %
+  all_summary_statistics <- all_summary_statistics %>% 
+    mutate(numbers = case_when(
+      is.na(independent.var.value) ~ numbers,
+      !is.na(independent.var.value) ~ round(numbers * 100, 0),
+      TRUE ~ NA_real_
+    ))
+  
+  
+  
   if (!is.null(questionnaire)) {
     all_summary_statistics_labeled <- results %>% lapply(map_to_labeled, 
                                                          questionnaire) %>% lapply(function(x) {
@@ -37,3 +53,4 @@ dmerge <- function (results, rows = c("repeat.var", "repeat.var.value"),
     spread(key = master_table_column_name, value = numbers)
   return(wide_format)
 }
+
