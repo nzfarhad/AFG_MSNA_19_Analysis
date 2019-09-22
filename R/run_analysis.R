@@ -22,16 +22,16 @@ choices <- read.csv("input/questionnaire/questionnaire_choices.csv",
                     stringsAsFactors=F, check.names = F)
 
 ####### load sampling frame
-samplingframe <- load_samplingframe("input/sampling_frames/sampling_frame_idp_returnee.csv")
+samplingframe <- load_samplingframe("input/sampling_frames/sampling_frame_overall_updated.csv")
 
 
 
 # load analysis plan
-analysisplan <- load_analysisplan(file = "./input/analysisplans/analysisplan_prelim_idp_returnee.csv")
+analysisplan <- load_analysisplan(file = "./input/analysisplans/analysisplan_FSA_overall.csv")
 
 
 # Load recoded clean data
-response <- read_csv("./input/data/recoded/data_with_strata.csv") %>%
+response <- read.csv("./input/data/recoded/data_with_strata.csv") %>%
   mutate(strata = stringr::str_c(final_displacement_status_non_displ, "_", province),
          cluster_id = str_c(final_displacement_status_non_displ, "_", province, "_", survey_village)) %>%
   filter(strata %in% samplingframe$strata)
@@ -81,7 +81,8 @@ results <- from_analysisplan_map_to_output(response, analysisplan = analysisplan
 labeled_results <- lapply(results$results, map_to_labeled,questionnaire)
 map_to_master_table(results_object =labeled_results, filename = "./output/results_idp_returnee.csv")
 
-
+datamerge <- dmerge(results$results)
+write.csv(datamerge, "./output/results/fsa_datamerge.csv", row.names = F)
 # not sure if this function should be "user facing" or have some wrappers (@Bouke thoughts?)
 # essentially it handles all the looping over different column values as hierarchies.
 # then each result is visualised by a function passed here that decides how to render each individual result
@@ -93,8 +94,8 @@ hypegrammaR:::map_to_generic_hierarchical_html(results,
                                                level = 2,
                                                questionnaire = questionnaire,
                                                label_varnames = TRUE,
-                                               dir = "./output",
-                                               filename = "results_idp_returnee.html")
+                                               dir = "./output/results",
+                                               filename = "fsa.html")
 
 
 browseURL("./output/results.html")
