@@ -22,7 +22,7 @@ overall_hh_roster <- read_excel(master_data, sheet = "MSNA_AFG_19_hh_roster" , n
 overall_death_roster <- read_excel(master_data, sheet = "MSNA_AFG_19_hh_death_roster" , na = c("","NA"))
 overall_left_roster <- read_excel( master_data, sheet = "MSNA_AFG_19_hh_left_roster" , na = c("","NA"))
 
-
+# Temp for the data is exported out of kobo incorrectly. 
 rename1 <- function(d1) {
   sub("/", ".", names(d1))
 } 
@@ -549,64 +549,242 @@ data$lcsi_severity<-car::recode(data$lcsi_category,
 
 #################################################################
 
-## Grouping indicators ####
+## Indicators ####
+
+
+### Numerators
+## Some numerators combine variables calcualte those here
+data$edu_age_boys_girls_num <-  comp_score(data, c("boys_ed","girls_ed"))
+
+food_water_rent_vars <- c(
+  "food_exp",
+  "water_expt",
+  "rent_exp",
+  "total_income"
+)
+data$food_water_rent_num <- comp_score(data, food_water_rent_varsall_expense_vars)
 
 
 
+all_expenses_vars <- c(
+  "food_exp",
+  "water_expt",
+  "rent_exp",
+  "fuel_exp",
+  "debt_exp")
+data$all_expenses <- comp_score(data, all_expense_vars)
 
-      
-
-## Need to group these into place
-
-
-# Adjust displacement status
+## urban 
+## infromal settlement
+## displacement status
+ # Adjust displacement status as more information in other data
 non_displ_data <- read.csv("input/Non_Displaced_Host_List_v2.csv",stringsAsFactors=F,na.strings = c("", "NA"))
 data<-full_join(data, non_displ_data,by = c("district"="district"))
   data$final_displacement_status_non_displ<-ifelse(data$final_displacement_status=='non_displaced'|data$final_displacement_status=='host', data$non_displ_class,data$final_displacement_status)
 
+# prev_displacement
+  
+data <- data %>% 
+  mutate(
+    # prev_displacement_num
+    prev_displacement_num_class = case_when(
+      prev_displacement_num == 2 ~ "2",
+      prev_displacement_num == 3 ~ "3",
+      prev_displacement_num >3 ~ "4+"
+    ),
+    # refugee_displace_year
+    refugee_displace_year_class = case_when(
+      refugee_displace_year == 0 ~ "0",
+      refugee_displace_year == 1 ~ "1",
+      refugee_displace_year == 2 ~ "2",
+      refugee_displace_year == 3 ~ "3",
+      refugee_displace_year > 3 ~ "4+"
+    ),
+    # cb_return_displace_year
+    cb_return_displace_year_class = case_when(
+      cb_return_displace_year == 0 ~ "0",
+      cb_return_displace_year == 1 ~ "1",
+      cb_return_displace_year == 2 ~ "2",
+      cb_return_displace_year == 3 ~ "3",
+      cb_return_displace_year > 3 ~ "4+"
+    ),
+    # cb_return_return_year
+    cb_return_return_year_call = case_when(
+      cb_return_return_year == 0 ~ "0",
+      cb_return_return_year == 1 ~ "1",
+      cb_return_return_year == 2 ~ "2",
+      cb_return_return_year == 3 ~ "3",
+      cb_return_return_year > 3 ~ "4+"
+    ),
+    # idp_displ_year
+    idp_displ_year_class = case_when(
+      idp_displ_year == 0 ~ "0",
+      idp_displ_year == 1 ~ "1",
+      idp_displ_year == 2 ~ "2",
+      idp_displ_year == 3 ~ "3",
+      idp_displ_year > 3 ~ "4+"
+    ),
+    # head of household age_group
+    hoh_age_group = case_when(
+      hoh_age >= 65 ~ "65+",
+      hoh_age < 65 ~ "<65"
+    ),
+    # head of household disabled
+    hoh_disabled = case_when(
+      wg_walking == "yes" |  wg_selfcare == "yes" ~ "disabled",
+      wg_walking == "no" |  wg_selfcare == "no" ~ "not_disabled",
+      TRUE ~ NA_character_
+    ),
+    pregnant_member = case_when(
+      pregnant > 0 ~ "at_least_one_mem_pregnant",
+      pregnant == 0 ~ "no_mem_pregnent",
+      TRUE ~ NA_character_
+    ),
+    lactating_member = case_when(
+      lactating > 0 ~ "at_least_one_mem_lactating",
+      lactating == 0 ~ "no_mem_lactating",
+      TRUE ~ NA_character_
+    ),
+    pregnant_lactating_member = case_when(
+      pregnant > 0 | lactating > 0 ~ "at_least_one_mem_pregnant_lactating",
+      pregnant == 0 & lactating == 0 ~ "no_mem_pregnent_lactating",
+      TRUE ~ NA_character_
+    ),
+    female_literacy_yes_no <- case_when(
+      female_literacy == 0 ~ "0",
+      female_literacy >= 1 ~ "1 or more",
+      TRUE ~ NA_character_
+    ),
+    male_literacy_yes_no <- case_when(
+      male_literacy == 0 ~ "0",
+      male_literacy >= 1 ~ "1 or more",
+      TRUE ~ NA_character_
+    ),
+    # How many adults 18+ years worked outside of the household in the last 30 days?
+    adults_working_yes_no = case_when(
+      adults_working == 0 ~ "0",
+      adults_working >= 1 ~ "1 or more",
+      TRUE ~ NA_character_
+    ),
+    children_working_yes_no = case_when(
+      children_working == 0 ~ "0",
+      children_working >= 1 ~ "1 or more",
+      TRUE ~ NA_character_
+    ),
+    ag_income_cal = case_when(
+      ag_income == 0 ~ 0,
+      ag_income > 0 ~ ag_income / hh_size,
+      TRUE ~ NA_real_
+    ),
+    livestock_income_cal = case_when(
+      livestock_income == 0 ~ 0,
+      livestock_income > 0 ~ livestock_income / hh_size,
+      TRUE ~ NA_real_),
+    rent_income_cal = case_when(
+      rent_income == 0 ~ 0,
+      rent_income > 0 ~ rent_income / hh_size,
+      TRUE ~ NA_real_),
+    small_business_income_cal = case_when(
+      small_business_income == 0 ~ 0,
+      small_business_income > 0 ~ small_business_income / hh_size,
+      TRUE ~ NA_real_),
+    unskill_labor_income_cal = case_when(
+      unskill_labor_income == 0 ~ 0,
+      unskill_labor_income > 0 ~    unskill_labor_income / hh_size,
+      TRUE ~ NA_real_),
+    skill_labor_income_cal = case_when(
+      skill_labor_income == 0 ~ 0,
+      skill_labor_income > 0 ~    skill_labor_income / hh_size,
+      TRUE ~ NA_real_),
+    formal_employment_income_cal = case_when(
+      formal_employment_income == 0 ~ 0,
+      formal_employment_income > 0 ~    formal_employment_income / hh_size,
+      TRUE ~ NA_real_),
+    gov_benefits_income_cal = case_when(
+      gov_benefits_income == 0 ~ 0,
+      gov_benefits_income > 0 ~ gov_benefits_income / hh_size,
+      TRUE ~ NA_real_),
+    hum_assistance_income_cal = case_when(
+      hum_assistance_income == 0 ~ 0,
+      hum_assistance_income > 0 ~ hum_assistance_income / hh_size,
+      TRUE ~ NA_real_),
+    remittance_income_cal = case_when(
+      remittance_income == 0 ~ 0,
+      remittance_income > 0 ~ remittance_income / hh_size,
+      TRUE ~ NA_real_),
+    loans_income_cal = case_when(
+      loans_income == 0 ~ 0,
+      loans_income > 0 ~    loans_income / hh_size,
+      TRUE ~ NA_real_),
+    asset_selling_income_cal = case_when(
+      asset_selling_income == 0 ~ 0,
+      asset_selling_income > 0 ~    asset_selling_income / hh_size,
+      TRUE ~ NA_real_),
+    total_income_cal = case_when(
+      total_income == 0 ~ 0,
+      total_income > 0 ~    total_income / hh_size,
+      TRUE ~ NA_real_),
+    # Debt level
+    debt_amount_cal = case_when(
+      debt_amount == 0 ~ 0,
+      debt_amount > 0 ~    debt_amount / hh_size,
+      TRUE ~ NA_real_),
+    food_exp_cal = case_when(
+      total_income == 0 ~ 0,
+      total_income > 0 ~ food_exp / total_income,
+      TRUE ~ NA_real_
+    ),
+    water_expt_cal = case_when(
+      total_income == 0 ~ 0,
+      total_income > 0 ~ water_expt / total_income,
+      TRUE ~ NA_real_
+    ),
+    rent_exp_cal = case_when(
+      total_income == 0 ~ 0,
+      total_income > 0 ~ rent_exp / total_income,
+      TRUE ~ NA_real_
+    ),
+    fuel_exp_cal = case_when(
+      total_income == 0 ~ 0,
+      total_income > 0 ~ fuel_exp / total_income,
+      TRUE ~ NA_real_
+    ),
+    debt_exp_cal = case_when(
+      total_income == 0 ~ 0,
+      total_income > 0 ~ debt_exp / total_income,
+      TRUE ~ NA_real_
+    ),
+    basic_needs_cal = = case_when(
+      food_water_rent_num == 0 ~ 0,
+      food_water_rent_num > 0 ~ food_water_rent_num / total_income,
+      TRUE ~ NA_real_
+    ),
+    
+    
+    
+    
+  )
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #Recoding new variables
-data$hoh_age_group <- ifelse(data$hoh_age >= 60, "60+", 
-                             ifelse(data$hoh_age <= 60 & data$hoh_age > 17,"18-59",
-                                    ifelse(data$hoh_age <= 17 & data$hoh_age > 6, "6-17","0-5")))
 
 data$hh_no_tazkira <- ifelse(data$tazkira_total < 1, "Tazkira_No", "Tazkira_Yes")
 
 data$muac_yes_no <- ifelse(data$muac_total > 0 & !is.na(data$min_muac)  ,"Yes","No")
 
 
-
-data$all_expenses <- coerc(data[["food_exp"]]) + coerc(data[["water_expt"]]) + coerc(data[["rent_exp"]]) + coerc(data[["fuel_exp"]]) + coerc(data[["debt_exp"]])
-
-data$food_water_rent_com <- ifelse(data$total_income > 0, (coerc(data[["food_exp"]]) + coerc(data[["water_expt"]]) + coerc(data[["rent_exp"]]) / coerc(data[["total_income"]])), data$total_income)
-
-
-data$food_exp_cal <- ifelse(data$total_income > 0, (coerc(data[["food_exp"]]) / coerc(data[["total_income"]])), data$total_income)
-data$water_expt_cal <- ifelse(data$total_income > 0, (coerc(data[["water_expt"]]) / coerc(data[["total_income"]])), data$total_income)
-data$rent_exp_cal <- ifelse(data$total_income > 0, (coerc(data[["rent_exp"]]) / coerc(data[["total_income"]])), data$total_income)
-data$fuel_exp_cal <- ifelse(data$total_income > 0, (coerc(data[["fuel_exp"]]) / coerc(data[["total_income"]])), data$total_income)
-data$debt_exp_cal <- ifelse(data$total_income > 0, (coerc(data[["debt_exp"]]) / coerc(data[["total_income"]])), data$total_income)
-
-
-
-
-
-data$pregnant_member <- ifelse(data$pregnant > 0, "at_least_one_mem_pregnant", "no_mem_pregnent")
-data$lactating_member <- ifelse(data$lactating > 0, "at_least_one_mem_lactating", "no_mem_lactating")
-
-data$ag_income_cal <- ifelse(data$ag_income > 0, data$ag_income / data$hh_size, data$ag_income)
-data$livestock_income_cal <- ifelse(data$livestock_income > 0, data$livestock_income / data$hh_size, data$livestock_income)
-data$rent_income_cal <- ifelse(data$rent_income > 0, data$rent_income / data$hh_size, data$rent_income )
-data$small_business_income_cal <- ifelse(data$small_business_income > 0, data$small_business_income / data$hh_size, data$small_business_income )
-data$unskill_labor_income_cal <- ifelse(data$unskill_labor_income > 0, data$unskill_labor_income / data$hh_size, data$unskill_labor_income )
-data$skill_labor_income_cal <- ifelse(data$skill_labor_income > 0, data$skill_labor_income / data$hh_size, data$skill_labor_income )
-data$formal_employment_income_cal <- ifelse(data$formal_employment_income > 0, data$formal_employment_income / data$hh_size, data$formal_employment_income )
-data$gov_benefits_income_cal <- ifelse(data$gov_benefits_income > 0, data$gov_benefits_income / data$hh_size, data$gov_benefits_income)
-data$hum_assistance_income_cal <- ifelse(data$hum_assistance_income > 0, data$hum_assistance_income / data$hh_size, data$hum_assistance_income)
-data$remittance_income_cal <- ifelse(data$remittance_income > 0, data$remittance_income / data$hh_size, data$remittance_income)
-data$loans_income_cal <- ifelse(data$loans_income > 0, data$loans_income / data$hh_size, data$loans_income)
-data$asset_selling_income_cal <- ifelse(data$asset_selling_income > 0, data$asset_selling_income / data$hh_size, data$asset_selling_income)
-data$total_income_cal <- ifelse(data$total_income > 0, data$total_income / data$hh_size, data$total_income)
 
 
 data$recent_non_recent <- ifelse(data$final_displacement_status_non_displ == "recent_idps", "recent_idps",
@@ -615,57 +793,16 @@ data$edu_removal_shock_cal <-  ifelse(data$shock_class == 5, "Yes", "No")
 
 data$enrolled_attending <- ifelse(data$count_enrolled_attending > 0, "Enrolled_and_Attending", "Not" ) 
 
-data$female_literacy_yes_no <- ifelse(data$female_literacy < 1, "0", "1 or more")
-data$male_literacy_yes_no <- ifelse(data$male_literacy < 1, "0", "1 or more")
 
 
 
-data$edu_age_boys_girls <-  coerc(data[["boys_ed"]]) + coerc(data[["girls_ed"]])
+
+
 data$count_current_enrolled_avg <- coerc(data[["count_current_enrolled"]]) / data$edu_age_boys_girls
 data$count_current_attending_avg <- coerc(data[["count_current_attending"]]) / data$edu_age_boys_girls
 
 
-data <- data %>% 
-  mutate(
-  prev_displacement_num_class = case_when(
-    prev_displacement_num == 2 ~ "2",
-    prev_displacement_num == 3 ~ "3",
-    prev_displacement_num >3 ~ "4+"
-  ),
-  
-  refugee_displace_year_class = case_when(
-    refugee_displace_year == 0 ~ "0",
-    refugee_displace_year == 1 ~ "1",
-    refugee_displace_year == 2 ~ "2",
-    refugee_displace_year == 3 ~ "3",
-    refugee_displace_year > 3 ~ "4+"
-  ),
-  
-  cb_return_displace_year_class = case_when(
-    cb_return_displace_year == 0 ~ "0",
-    cb_return_displace_year == 1 ~ "1",
-    cb_return_displace_year == 2 ~ "2",
-    cb_return_displace_year == 3 ~ "3",
-    cb_return_displace_year > 3 ~ "4+"
-  ),
-  
-  cb_return_return_year_call = case_when(
-    cb_return_return_year == 0 ~ "0",
-    cb_return_return_year == 1 ~ "1",
-    cb_return_return_year == 2 ~ "2",
-    cb_return_return_year == 3 ~ "3",
-    cb_return_return_year > 3 ~ "4+"
-  ),
-  
-  idp_displ_year_class = case_when(
-    idp_displ_year == 0 ~ "0",
-    idp_displ_year == 1 ~ "1",
-    idp_displ_year == 2 ~ "2",
-    idp_displ_year == 3 ~ "3",
-    idp_displ_year > 3 ~ "4+"
-  )
-  
-)
+ 
 
 source("r/prepare_disagg.R")
 
