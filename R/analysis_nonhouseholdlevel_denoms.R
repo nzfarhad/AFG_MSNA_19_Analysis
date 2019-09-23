@@ -35,23 +35,25 @@ results$perc_female_19_59 <- sum1(d$female_19_59)/nrow(d[filt,])
 results$perc_female_60 <- sum1(d$female_60_plus)/nrow(d[filt,])
 
 # School attendance
+table(d$current_year_attending)
 filt <- d$male_6_12>0
-results$perc_enrolled_male_6_12 <- sum1(d[filt,]$current_year_enrolled)/nrow(d[filt,])
-results$perc_attending_male_6_12 <- sum1(d[filt,]$current_year_attending)/nrow(d[filt,])
+results$perc_enrolled_male_6_12 <- sum1(d[filt,]$current_year_enrolled == "yes")/nrow(d[filt,])
+results$perc_attending_male_6_12 <- sum1(d[filt,]$current_year_attending == "yes")/nrow(d[filt,])
 
 filt <- d$male_13_18>0
-results$perc_enrolled_male_13_18 <- sum1(d[filt,]$current_year_enrolled)/nrow(d[filt,])
-results$perc_attending_male_13_18 <- sum1(d[filt,]$current_year_attending)/nrow(d[filt,])
+results$perc_enrolled_male_13_18 <- sum1(d[filt,]$current_year_enrolled == "yes")/nrow(d[filt,])
+results$perc_attending_male_13_18 <- sum1(d[filt,]$current_year_attending == "yes")/nrow(d[filt,])
 
 filt <- d$female_6_12>0
-results$perc_attending_female_6_12 <- sum1(d[filt,]$current_year_attending)/nrow(d[filt,])
+results$perc_enrolled_female_6_12 <- sum1(d[filt,]$current_year_enrolled == "yes")/nrow(d[filt,])
+results$perc_attending_female_6_12 <- sum1(d[filt,]$current_year_attending == "yes")/nrow(d[filt,])
 filt <- d$female_13_18>0
-results$perc_attending_female_13_18 <- sum1(d[filt,]$current_year_attending)/nrow(d[filt,])
+results$perc_enrolled_female_13_18 <- sum1(d[filt,]$current_year_enrolled == "yes")/nrow(d[filt,])
+results$perc_attending_female_13_18 <- sum1(d[filt,]$current_year_attending == "yes")/nrow(d[filt,])
 
 filt <- d$school_age == "school age"
-results$perc_enrolled_previous <- sum1(d[filt,]$previous_year_enrolled)/nrow(d[filt,])
+results$perc_enrolled_previous <- sum1(d[filt,]$previous_year_enrolled== "yes")/nrow(d[filt,])
 results$perc_edu_removal <- sum1(d[filt,]$edu_removal_shock.no)/nrow(d[filt,])
-
 
 denom_ <- sum1(data$age_0_4)
 results$perc_moderate <- sum1(data$number_muac_mod_mal)/denom_
@@ -75,10 +77,14 @@ fun1 <- function(x){
   round(x*100,0)
 }
 
+
+results_long <- data.frame(var = names(results), val = t(results)[1:ncol(results)])
 # Change the format
 results <-  results %>% 
   mutate_at(vars(contains("perc")), fun1)
 
+write.csv(results, file = "output/results.csv", row.names = FALSE)
+write.csv(results_long, file = "output/results_long.csv", row.names = FALSE)
 
 
 
