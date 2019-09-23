@@ -1,6 +1,6 @@
 # AFG analysis
 
-This repository contains the 2019 mult-sector needs assessment of Afghanistan conducted by X. 
+This repository contains the 2019 mult-sector needs assessment of Afghanistan conducted by REACH. 
 The repository contains:
 inputs - for data inputs
 outputs - for final data outputs
