@@ -11,6 +11,8 @@ RQ: not specified (automatic analysisplan),sub RQ not specified (automatic analy
 RQ: not specified (automatic analysisplan),sub RQ not specified (automatic analysisplan),,hoh_debt_disagg,categorical,fsac_sev_high,categorical,group_difference,
 RQ: not specified (automatic analysisplan),sub RQ not specified (automatic analysisplan),,tazkira_disagg,categorical,fsac_severity,categorical,group_difference,
 RQ: not specified (automatic analysisplan),sub RQ not specified (automatic analysisplan),,tazkira_disagg,categorical,fsac_sev_high,categorical,group_difference,
+RQ: not specified (automatic analysisplan),sub RQ not specified (automatic analysisplan),,urban_disagg,categorical,fsac_severity,categorical,group_difference,
+RQ: not specified (automatic analysisplan),sub RQ not specified (automatic analysisplan),,urban_disagg,categorical,fsac_sev_high,categorical,group_difference,
 RQ: not specified (automatic analysisplan),sub RQ not specified (automatic analysisplan),,,,major_events,categorical,direct_reporting,
 RQ: not specified (automatic analysisplan),sub RQ not specified (automatic analysisplan),,,,livestock_impact,categorical,direct_reporting,
 RQ: not specified (automatic analysisplan),sub RQ not specified (automatic analysisplan),,,,livestock_impact_how,categorical,direct_reporting,

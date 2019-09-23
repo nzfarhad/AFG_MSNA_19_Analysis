@@ -26,6 +26,7 @@ overall_left_roster <- read_excel( master_data, sheet = "MSNA_AFG_19_hh_left_ros
 rename1 <- function(d1) {
   sub("/", ".", names(d1))
 } 
+data$uuid <- data$`_uuid`
 names(data) <- rename1(data)
 names(overall_muac_data ) <- rename1(overall_muac_data )
 names(overall_hh_roster ) <- rename1(overall_hh_roster )
@@ -717,12 +718,12 @@ data <- data %>%
       pregnant == 0 & lactating == 0 ~ "no_mem_pregnent_lactating",
       TRUE ~ NA_character_
     ),
-    female_literacy_yes_no <- case_when(
+    female_literacy_yes_no = case_when(
       female_literacy == 0 ~ "0",
       female_literacy >= 1 ~ "1 or more",
       TRUE ~ NA_character_
     ),
-    male_literacy_yes_no <- case_when(
+    male_literacy_yes_no = case_when(
       male_literacy == 0 ~ "0",
       male_literacy >= 1 ~ "1 or more",
       TRUE ~ NA_character_
@@ -834,7 +835,7 @@ data <- data %>%
       TRUE ~ NA_real_
     ),
     basic_needs_cal = case_when(
-      food_water_rent_num == 0 ~ 0,
+      total_income == 0 ~ 0,
       food_water_rent_num > 0 ~ food_water_rent_num / total_income,
       TRUE ~ NA_real_
     ),
@@ -939,12 +940,12 @@ data <- data %>%
     ),
     adults_working_call = case_when(
       adults_working == 0 ~ 0,
-      adults_working > 0 ~ adults_working/age_18_64,
+      adults_working > 0 & age_18_64 > 0 ~ adults_working/age_18_64,
       TRUE ~ NA_real_
     ),
     child_working_call = case_when(
       children_working == 0 ~ 0,
-      children_working > 0 ~ children_working/age_10_17,
+      children_working > 0 & age_10_17 > 0~ children_working/age_10_17,
       TRUE ~ NA_real_
     ),
     adult_tazkira_cal = case_when(

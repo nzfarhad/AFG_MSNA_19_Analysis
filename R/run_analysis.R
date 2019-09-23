@@ -27,7 +27,7 @@ samplingframe <- load_samplingframe("input/sampling_frames/sampling_frame_overal
 
 
 # load analysis plan
-analysisplan <- load_analysisplan(file = "./input/analysisplans/analysisplan_FSA_overall.csv")
+analysisplan <- load_analysisplan(file = "./input/analysisplans/analysisplan_overall.csv")
 
 
 # Load recoded clean data
@@ -53,13 +53,6 @@ questionnaire <- load_questionnaire(data = response,
                                     questions = questions,
                                     choices = choices)
 
-# make analysisplan including all questions as dependent variable by HH type, repeated for each governorate:
-# analysisplan <- make_analysisplan_all_vars(select(response, -strata, -cluster_id),
-#                                          questionnaire,
-#                                          independent.variable = "final_displacement_status",
-#                                          repeat.for.variable = "region",
-#                                          hypothesis.type = "group_difference" 
-#                                          )
 
 
 # wieghts
@@ -80,13 +73,14 @@ results <- from_analysisplan_map_to_output(response, analysisplan = analysisplan
 
 ### results output
 labeled_results <- lapply(results$results, map_to_labeled,questionnaire)
-map_to_master_table(results_object =labeled_results, filename = "./output/results_idp_returnee.csv")
+map_to_master_table(results_object =labeled_results, filename = "./output/results_overall.csv")
+
 
 # big_table <- results$results %>% lapply(function(x) x[["summary.statistic"]]) %>% do.call(rbind, .)
 # write.csv(big_table,"big table.csv")
 
-datamerge <- dmerge(results$results)
-write.csv(datamerge, "./output/results/fsa_datamerge_overall_and_disagg.csv", row.names = F)
+# datamerge <- dmerge(results$results)
+# write.csv(datamerge, "./output/results/fsa_datamerge_overall_and_disagg.csv", row.names = F)
 
 # not sure if this function should be "user facing" or have some wrappers (@Bouke thoughts?)
 # essentially it handles all the looping over different column values as hierarchies.
@@ -99,8 +93,8 @@ hypegrammaR:::map_to_generic_hierarchical_html(results,
                                                level = 2,
                                                questionnaire = questionnaire,
                                                label_varnames = TRUE,
-                                               dir = "./output/results",
-                                               filename = "fsa_datamerge_overall_and_disagg.html")
+                                               dir = "./output",
+                                               filename = "results_overall.html")
 
 
 browseURL("./output/results.html")
