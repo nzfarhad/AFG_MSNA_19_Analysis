@@ -472,23 +472,23 @@ data$edu_sev_high<-ifelse(data$edu_severity==3|data$edu_severity==4,1,0)
 #################################################################
 ### Health ####
 
-# #deaths under 5 years age
-# overall_death_roster$deaths_under5<-ifelse(overall_death_roster$hh_died_age<5,1,0)
-# 
-# # deaths >= 5
-# overall_death_roster$deaths_over5<-ifelse(overall_death_roster$hh_died_age>=5,1,0)  
-# 
-# 
-# # group by hh
-# health_analysis<-overall_death_roster %>% 
-#   group_by(`_submission__uuid`) %>% 
-#   summarize(number_death_under5=sum(deaths_under5),
-#             hh_member_died = sum(hh_member_died),
-#             number_death_over5=sum(deaths_over5))
-# 
-# # join with parent dataset
-# data<-full_join(data, health_analysis,by = c("_uuid"="_submission__uuid"))
-# 
+#deaths under 5 years age
+overall_death_roster$deaths_under5<-ifelse(overall_death_roster$hh_died_age<5,1,0)
+
+# deaths >= 5
+overall_death_roster$deaths_over5<-ifelse(overall_death_roster$hh_died_age>=5,1,0)
+
+
+# group by hh
+health_analysis<-overall_death_roster %>%
+  group_by(`_submission__uuid`) %>%
+  summarize(number_death_under5=sum(deaths_under5),
+            hh_member_died = sum(hh_member_died),
+            number_death_over5=sum(deaths_over5))
+
+# join with parent dataset
+data<-full_join(data, health_analysis,by = c("uuid"="_submission__uuid"))
+data$number_death_under5[is.na(data$number_death_under5)] <- 0
 # #deaths under 5 yrs age weight
 # data$number_death_under5_class<-ifelse(data$number_death_under5 >= 1, 3,0)
 # data$number_death_under5_class[is.na(data$number_death_under5_class)] <- 0
@@ -618,6 +618,9 @@ comp_ind_vars <- c(
   "health_sev_high"
 )
 data$comp_ind_sev <- comp_score(data, comp_ind_vars)
+
+overall_death_roster$hh_died_age<5
+data$members_died
 
 ## Age categories
 
