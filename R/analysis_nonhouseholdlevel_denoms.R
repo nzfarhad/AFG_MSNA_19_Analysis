@@ -83,8 +83,8 @@ results <-  results %>%
   mutate_at(vars(contains("perc")), fun1)
 results_long <- data.frame(var = names(results), val = t(results)[1:ncol(results)])
 
-write.csv(results, file = "output/results.csv", row.names = FALSE)
-write.csv(results_long, file = "output/results_long.csv", row.names = FALSE)
+write.csv(results, file = "output/non_hh_results.csv", row.names = FALSE)
+write.csv(results_long, file = "output/non_hh_results_long.csv", row.names = FALSE)
 
 
 
