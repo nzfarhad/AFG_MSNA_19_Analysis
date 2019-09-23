@@ -130,7 +130,7 @@ RQ: not specified (automatic analysisplan),sub RQ not specified (automatic analy
 RQ: not specified (automatic analysisplan),sub RQ not specified (automatic analysisplan),,,,minimum_dietary_diversity,categorical,direct_reporting,
 RQ: not specified (automatic analysisplan),sub RQ not specified (automatic analysisplan),,,,minimum_dietary_diversity_cal,categorical,direct_reporting,
 RQ: not specified (automatic analysisplan),sub RQ not specified (automatic analysisplan),,,,shelter,categorical,direct_reporting,
-RQ: not specified (automatic analysisplan),sub RQ not specified (automatic analysisplan),,,,rooms_hh_ca,numerical,direct_reporting,
+RQ: not specified (automatic analysisplan),sub RQ not specified (automatic analysisplan),,,,rooms_hh_cal,numerical,direct_reporting,
 RQ: not specified (automatic analysisplan),sub RQ not specified (automatic analysisplan),,,,shelter_damage,categorical,direct_reporting,
 RQ: not specified (automatic analysisplan),sub RQ not specified (automatic analysisplan),,,,shelter_damage_extent,categorical,direct_reporting,
 RQ: not specified (automatic analysisplan),sub RQ not specified (automatic analysisplan),,,,shelter_damage_repair,categorical,direct_reporting,
