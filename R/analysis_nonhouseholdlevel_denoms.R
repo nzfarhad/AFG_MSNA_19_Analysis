@@ -35,7 +35,7 @@ results$perc_female_19_59 <- sum1(d$female_19_59)/nrow(d[filt,])
 results$perc_female_60 <- sum1(d$female_60_plus)/nrow(d[filt,])
 
 # School attendance
-table(d$current_year_attending)
+results$perc_enrolled <- sum1(d[filt,]$current_year_enrolled == "yes")/sum1(d$school_age == "school age") 
 filt <- d$male_6_12>0
 results$perc_enrolled_male_6_12 <- sum1(d[filt,]$current_year_enrolled == "yes")/nrow(d[filt,])
 results$perc_attending_male_6_12 <- sum1(d[filt,]$current_year_attending == "yes")/nrow(d[filt,])
@@ -78,10 +78,10 @@ fun1 <- function(x){
 }
 
 
-results_long <- data.frame(var = names(results), val = t(results)[1:ncol(results)])
 # Change the format
 results <-  results %>% 
   mutate_at(vars(contains("perc")), fun1)
+results_long <- data.frame(var = names(results), val = t(results)[1:ncol(results)])
 
 write.csv(results, file = "output/results.csv", row.names = FALSE)
 write.csv(results_long, file = "output/results_long.csv", row.names = FALSE)
