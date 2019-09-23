@@ -25,7 +25,6 @@ choices <- read.csv("input/questionnaire/questionnaire_choices.csv",
 samplingframe <- load_samplingframe("input/sampling_frames/sampling_frame_overall.csv")
 
 
-
 # load analysis plan
 analysisplan <- load_analysisplan(file = "./input/analysisplans/analysisplan_overall.csv")
 
