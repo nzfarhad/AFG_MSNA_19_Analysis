@@ -92,9 +92,9 @@ data$fsac_score <- comp_score(data, fsac_vars)
 data <- data %>% 
   mutate(
     fsac_severity = case_when(
-      fsac_score <= 1 ~ 1, 
-      fsac_score <= 3 ~ 2,
-      fsac_score <= 7 ~ 3,
+      fsac_score <= 2 ~ 1, 
+      fsac_score <= 5 ~ 2,
+      fsac_score <= 8 ~ 3,
       fsac_score <= 16 ~ 4
     ),
     fsac_sev_high = case_when(
@@ -462,9 +462,9 @@ data$edu_score<-data$edu_score_hh_w_schoolage
 data$edu_score[is.na(data$edu_score)] <- 0
 
 data$edu_severity<-car::recode(data$edu_score,
-                          "0:3='1';
-                          4:6='2';
-                          7:8='3';
+                          "0:2='1';
+                          3:5='2';
+                          6:8='3';
                           9:16='4'")   
 
 data$edu_sev_high<-ifelse(data$edu_severity==3|data$edu_severity==4,1,0)
