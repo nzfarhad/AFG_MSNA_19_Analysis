@@ -620,8 +620,6 @@ comp_ind_vars <- c(
 )
 data$comp_ind_sev <- comp_score(data, comp_ind_vars)
 
-overall_death_roster$hh_died_age<5
-data$members_died
 
 ## Age categories
 
@@ -991,14 +989,15 @@ data$enrolled_attending <- ifelse(data$count_enrolled_attending > 0, "Enrolled_a
 
 
 
-
-
-
-
-
-
- 
-
 source("r/prepare_disagg.R")
+
+# fliter prolematic feilds
+uuid_filter <- c("ac3e8430-ba88-497b-9895-c1bd8da7f79e",
+                 "8ac61e9b-8ff8-4e4a-9619-1dc0ab31f396", 
+                 "7171e0a8-3a40-4c57-b84d-a65f08115994",
+                 "596c244b-ea20-48ef-8218-023ac3f2831f")
+
+`%notin%` <- Negate(`%in%`)
+data <- data %>% filter(uuid %notin% uuid_filter )
 
 write.csv(data, "./input/data/recoded/data_with_strata.csv", row.names = F)
