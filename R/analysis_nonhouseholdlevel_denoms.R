@@ -1,4 +1,21 @@
-
+hoh_data <- data %>% select(
+  hh_member_sex = hoh_sex,
+  hh_member_age = hoh_age
+) %>% 
+  mutate(
+    school_age = case_when(
+      hh_member_age >=6 & hh_member_age <= 18 ~ "school age",
+      TRUE ~ "not school age"
+    ),
+    male_0_5 = hh_member_sex == "male" & between(hh_member_age, 0, 5),
+    male_6_18 = hh_member_sex == "male" & between(hh_member_age, 6, 18),
+    male_19_59 = hh_member_sex == "male" & between(hh_member_age, 19, 59),
+    male_60_plus = hh_member_sex == "male" & hh_member_age >= 60,
+    female_0_5 = hh_member_sex == "female" & between(hh_member_age, 0, 5),
+    female_6_18 = hh_member_sex == "female" & between(hh_member_age, 6, 18),
+    female_19_59 = hh_member_sex == "female" & between(hh_member_age, 19, 59),
+    female_60_plus = hh_member_sex == "female" & hh_member_age >= 60
+  )
 
 # create the variables
 overall_hh_roster <- overall_hh_roster %>% 
@@ -7,17 +24,39 @@ overall_hh_roster <- overall_hh_roster %>%
       hh_member_age >=6 & hh_member_age <= 18 ~ "school age",
       TRUE ~ "not school age"
     ),
-    male_0_5 = male_0_2 + male_3_5,
-    male_6_18 = male_6_12 + male_13_18,
-    female_0_5 = female_0_2 + female_3_5,
-    female_6_18 = female_6_12 + female_13_18,
+    male_0_5 = hh_member_sex == "male" & between(hh_member_age, 0, 5),
+    male_6_18 = hh_member_sex == "male" & between(hh_member_age, 6, 18),
+    male_19_59 = hh_member_sex == "male" & between(hh_member_age, 19, 59),
+    male_60_plus = hh_member_sex == "male" & hh_member_age >= 60,
+    female_0_5 = hh_member_sex == "female" & between(hh_member_age, 0, 5),
+    female_6_18 = hh_member_sex == "female" & between(hh_member_age, 6, 18),
+    female_19_59 = hh_member_sex == "female" & between(hh_member_age, 19, 59),
+    female_60_plus = hh_member_sex == "female" & hh_member_age >= 60
   )
 
 sum1 <- function(x){sum(x, na.rm = TRUE)}
 
 # create data frame for results
 results <- data.frame(row.names = 1)
-d <- overall_hh_roster # schorten code
+
+# Make the rooster and hoh data have the same vars and order
+d <- overall_hh_roster %>% 
+  select(
+    hh_member_sex,
+    hh_member_age,
+    school_age,
+    male_0_5,
+    male_6_18,
+    male_19_59,
+    male_60_plus,
+    female_0_5,
+    female_6_18,
+    female_19_59,
+    female_60_plus
+  )
+names(d) == names(hoh_data)
+d <- rbind(d, hoh_data)
+
 results$tot_child_6_18 <- sum1(d$school_age == "school age") 
 results$perc_females <- sum1(d$hh_member_sex=="female") /nrow(d)
 results$perc_males <- sum1(d$hh_member_sex=="male")/nrow(d)
