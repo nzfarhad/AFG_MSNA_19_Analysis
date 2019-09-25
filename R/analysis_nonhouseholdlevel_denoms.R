@@ -62,11 +62,12 @@ results$perc_severe <- sum1(data$number_muac_sev_mal)/denom_
 results$perc_muac125 <- sum1(data$number_muac_above_125)/denom_
 results$perc_ruft_recpt <- sum1(data$ruft_reception)/denom_
 
-filt <- data$ruft_reception == TRUE
-denom_ <- sum1(data$ruft_reception)
-results$perc_ruft_recpt_115 <- sum1(data[filt,]$number_muac_sev_mal)/denom_
-results$perc_ruft_recpt_115_125 <- sum1(data[filt,]$number_muac_mod_mal)/denom_
-results$perc_ruft_recpt_125 <- sum1(data[filt,]$number_muac_above_125)/denom_
+d1 <- overall_muac_data %>% filter(rutf_reception == "yes")
+denom_ <- nrow(d1)
+
+results$perc_ruft_recpt_115 <- sum1(d1$severe_malnutrition)/denom_
+results$perc_ruft_recpt_115_125 <- sum1(d1$moderate_malnutrition)/denom_
+results$perc_ruft_recpt_125 <- sum1(d1$muac_measurement >= 125)/denom_
 
 fun1 <- function(x){
   round(x*100,0)
