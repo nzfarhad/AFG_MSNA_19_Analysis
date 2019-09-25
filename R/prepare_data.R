@@ -358,6 +358,7 @@ muac_presence_analysis<-overall_muac_data %>%
   summarize(number_muac_person=sum(person_muac),
             number_muac_mod_mal=sum(moderate_malnutrition),
             number_muac_sev_mal=sum(severe_malnutrition),
+            number_muac_above_125 = sum(muac_measurement>=125, na.rm = T),
             min_muac=min(muac_measurement),
             ruft_reception_num = sum(rutf_reception== "yes"),
             ruft_reception = sum(rutf_reception== "yes")>=1)
