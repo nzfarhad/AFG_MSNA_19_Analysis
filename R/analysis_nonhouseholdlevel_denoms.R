@@ -55,23 +55,18 @@ filt <- d$school_age == "school age"
 results$perc_enrolled_previous <- sum1(d[filt,]$previous_year_enrolled== "yes")/nrow(d[filt,])
 results$perc_edu_removal <- sum1(d[filt,]$edu_removal_shock.no)/nrow(d[filt,])
 
-denom_ <- sum1(data$age_0_4)
+denom_ <- sum1(data$number_muac_person)
+
 results$perc_moderate <- sum1(data$number_muac_mod_mal)/denom_
 results$perc_severe <- sum1(data$number_muac_sev_mal)/denom_
-results$perc_muac125 <- sum1(data$min_muac>125)/denom_
+results$perc_muac125 <- sum1(data$number_muac_above_125)/denom_
 results$perc_ruft_recpt <- sum1(data$ruft_reception)/denom_
 
-filt <- data$min_muac < 115
-denom_ <- sum1(data[filt,]$age_0_4)
-results$perc_ruft_recpt_115 <- sum1(data[filt,]$ruft_reception)/denom_
-
-filt <- data$min_muac<= 115 & data$min_muac < 125
-denom_ <- sum1(data[filt,]$age_0_4)
-results$perc_ruft_recpt_115_125 <- sum1(data[filt,]$ruft_reception)/denom_
-
-filt <- data$min_muac >= 125
-denom_ <- sum1(data[filt,]$age_0_4)
-results$perc_ruft_recpt_125 <- sum1(data[filt,]$ruft_reception)/denom_
+filt <- data$ruft_reception == TRUE
+denom_ <- sum1(data$ruft_reception)
+results$perc_ruft_recpt_115 <- sum1(data[filt,]$number_muac_sev_mal)/denom_
+results$perc_ruft_recpt_115_125 <- sum1(data[filt,]$number_muac_mod_mal)/denom_
+results$perc_ruft_recpt_125 <- sum1(data[filt,]$number_muac_above_125)/denom_
 
 fun1 <- function(x){
   round(x*100,0)
