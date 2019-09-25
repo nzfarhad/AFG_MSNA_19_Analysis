@@ -62,6 +62,13 @@ data <- data %>%
       adult_lack_tazkira == 0 & child_lack_tazkira == 0 ~ "all_have_tazkira",
       TRUE ~ NA_character_
     ),
+    # Tazkira # added some_have as per gss 25190921
+    tazkira_disagg2 = case_when(
+      child_tazkira == 0 & adult_tazkira == 0 ~ "non_have_tazkira",
+      adult_lack_tazkira >= 1 | child_lack_tazkira >= 1 ~ "some_have_tazkira",
+      adult_lack_tazkira == 0 & child_lack_tazkira == 0 ~ "all_have_tazkira",
+      TRUE ~ NA_character_
+    ),
     # Registration of returnees
     registered_dissagg = case_when(
       cb_return_documentation %in% c("yes_shown", "yes") ~ "registered",

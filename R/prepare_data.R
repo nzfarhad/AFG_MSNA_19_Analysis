@@ -1,7 +1,7 @@
 # Title: Preparation of data for woa survey
-# Authors: Sayed Nabizada, Christopher Jarvis, 
+# Authors: Sayed Nabizada, Jarod Lapp, Christopher Jarvis, 
 # Date created: 20/09/2019
-# Date last changed: 21/09/2019
+# Date last changed: 25/09/2019
 # Purpose: This script is for recoding variables in the whole of 
 #          of Afghanistan survey data
 #          indicators and composite scores are created. 
@@ -859,9 +859,9 @@ data <- data %>%
       TRUE ~ NA_character_
     ),
     priority_nfi_cal = case_when(
-      priority_nfi_num <= 1 ~ "0-1",
-      priority_nfi_num <= 3 ~ "2-3",
-      priority_nfi_num <= 5 ~ "4-5",
+      priority_nfi_num <= 1 ~ "0_1",
+      priority_nfi_num <= 3 ~ "2_3",
+      priority_nfi_num <= 5 ~ "4_5",
       priority_nfi_num <= 6 ~ "6",
       TRUE ~ NA_character_
     ),

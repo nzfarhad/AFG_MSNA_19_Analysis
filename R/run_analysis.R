@@ -22,11 +22,11 @@ choices <- read.csv("input/questionnaire/questionnaire_choices.csv",
                     stringsAsFactors=F, check.names = F)
 
 ####### load sampling frame
-samplingframe <- load_samplingframe("input/sampling_frames/sampling_frame_refugee.csv")
+samplingframe <- load_samplingframe("input/sampling_frames/sampling_frame_overall.csv")
 
 
 # load analysis plan
-analysisplan <- load_analysisplan(file = "./input/analysisplans/analysisplan_refugee.csv")
+analysisplan <- load_analysisplan(file = "./input/analysisplans/analysisplan_composites_lcsi_disagg.csv")
 
 
 # Load recoded clean data
@@ -72,15 +72,15 @@ results <- from_analysisplan_map_to_output(response, analysisplan = analysisplan
 
 ### results output
 labeled_results <- lapply(results$results, map_to_labeled,questionnaire)
-map_to_master_table(results_object =labeled_results, filename = "./output/results_refugee_overall_and_disagg.csv")
+map_to_master_table(results_object =labeled_results, filename = "./output/results_comp_ind_sev_2_lsci.csv")
 
 
-pop_group_pivot <- response %>% group_by(final_displacement_status_non_displ, province ) %>% tally()
-write.csv(table(response$final_displacement_status_non_displ), "refugee_population.csv", row.names = F)
+pop_group_pivot <- response %>% group_by(final_displacement_status_non_displ) %>% tally()
+write.csv(table(response$final_displacement_status_non_displ), "hhs_included_in_analysis.csv", row.names = F)
 # write.csv(pop_group_pivot, "Overall_analysis_numbers_all.csv", row.names = F)
 
 big_table <- results$results %>% lapply(function(x) x[["summary.statistic"]]) %>% do.call(rbind, .)
-write.csv(big_table,"./output/results_refugee_overall_and_disagg_short_names.csv")
+write.csv(big_table,"./output/results_comp_ind_sev_2_lsci_short_names.csv")
 
 # datamerge <- dmerge(results$results)
 # write.csv(datamerge, "./output/results/fsa_datamerge_overall_and_disagg.csv", row.names = F)
@@ -97,7 +97,7 @@ hypegrammaR:::map_to_generic_hierarchical_html(results,
                                                questionnaire = questionnaire,
                                                label_varnames = TRUE,
                                                dir = "./output",
-                                               filename = "results_refugee_overall_and_disagg.html")
+                                               filename = "results_comp_ind_sev_2_lsci.html")
 
 
 browseURL("./output/results.html")

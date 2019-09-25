@@ -1,0 +1,10 @@
+research.question,sub.research.question,repeat.for.variable,independent.variable,independent.variable.type,dependent.variable,dependent.variable.type,hypothesis.type,hypothesis
+RQ: not specified (automatic analysisplan),sub RQ not specified (automatic analysisplan),,,,girl_unattendance_reason,categorical,direct_reporting,
+RQ: not specified (automatic analysisplan),sub RQ not specified (automatic analysisplan),,urban_disagg,categorical,girl_unattendance_reason,categorical,group_difference,
+RQ: not specified (automatic analysisplan),sub RQ not specified (automatic analysisplan),,hoh_sex_disagg,categorical,girl_unattendance_reason,categorical,group_difference,
+RQ: not specified (automatic analysisplan),sub RQ not specified (automatic analysisplan),,hoh_elderly_disagg,categorical,girl_unattendance_reason,categorical,group_difference,
+RQ: not specified (automatic analysisplan),sub RQ not specified (automatic analysisplan),,hoh_disabled_disagg,categorical,girl_unattendance_reason,categorical,group_difference,
+RQ: not specified (automatic analysisplan),sub RQ not specified (automatic analysisplan),,tazkira_disagg2,categorical,girl_unattendance_reason,categorical,group_difference,
+RQ: not specified (automatic analysisplan),sub RQ not specified (automatic analysisplan),,hoh_debt_disagg,categorical,girl_unattendance_reason,categorical,group_difference,
+RQ: not specified (automatic analysisplan),sub RQ not specified (automatic analysisplan),,province_disagg,categorical,girl_unattendance_reason,categorical,group_difference,
+RQ: not specified (automatic analysisplan),sub RQ not specified (automatic analysisplan),,region_disagg,categorical,girl_unattendance_reason,categorical,group_difference,
