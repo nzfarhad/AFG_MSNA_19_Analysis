@@ -44,7 +44,7 @@ data <- data %>%
     # Literate adults
     literate_adult_disagg = case_when(
       female_literacy == 0 & male_literacy == 0 ~ "no",
-      female_literacy == 1 | male_literacy == 1 ~ "yes",
+      female_literacy >= 1 | male_literacy >= 1 ~ "yes",
       TRUE ~ NA_character_
     ),
     # Debt level
@@ -102,15 +102,15 @@ data <- data %>%
     ),
     # Behavioural change
     behav_change_disagg = case_when(
-      adult_behavior_change == "yes" | child_behavior_change >= 1 ~ "some behavioural change",
-      adult_behavior_change == "no" & child_behavior_change == 0 ~ "some behavioural change",
+      adult_behavior_change == "yes" | child_behavior_change == "yes" ~ "some behavioural change",
+      adult_behavior_change == "no" & child_behavior_change == "yes" ~ "some behavioural change",
       TRUE ~ NA_character_
     ),
     # Acute Watery Diarrhea (AWD)
     awd_disagg = case_when(
       diarrhea_cases >= 1 ~ "awd present",
       diarrhea_cases == 0 ~ "no awd",
-      adult_behavior_change == "no" & child_behavior_change == 0 ~ "some behavioural change",
+      # adult_behavior_change == "no" & child_behavior_change == 0 ~ "some behavioural change",
       TRUE ~ NA_character_
     )
 )
