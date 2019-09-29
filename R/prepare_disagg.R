@@ -52,6 +52,7 @@ data <- data %>%
       debt_amount >= 200000 ~ "high_debt",
       debt_amount >= 50000 & debt_amount < 200000 ~ "medium_debt",
       debt_amount > 0 & debt_amount < 50000 ~ "low_debt",
+      debt_amount == 0 ~ "no_debt",
       debt == "no" ~ "no_debt",
       TRUE ~ NA_character_
     ),
@@ -65,10 +66,17 @@ data <- data %>%
     # Tazkira # added some_have as per gss 25190921
     tazkira_disagg2 = case_when(
       child_tazkira == 0 & adult_tazkira == 0 ~ "non_have_tazkira",
-      adult_lack_tazkira >= 1 | child_lack_tazkira >= 1 ~ "some_have_tazkira",
+      adult_lack_tazkira == 0 | child_lack_tazkira == 0 ~ "some_have_tazkira",
       adult_lack_tazkira == 0 & child_lack_tazkira == 0 ~ "all_have_tazkira",
       TRUE ~ NA_character_
     ),
+    # Tazkira # some have tazkira vs non-have tazkira as per gss 29190921
+    tazkira_disagg3 = case_when(
+      child_tazkira == 0 & adult_tazkira == 0 ~ "non_have_tazkira",
+      child_tazkira >= 1 | adult_tazkira >= 1 ~ "some_have_tazkira",
+      TRUE ~ NA_character_
+    ),
+    
     # Registration of returnees
     registered_dissagg = case_when(
       cb_return_documentation == "yes_shown" | cb_return_documentation == "yes_not_shown" ~ "registered",
@@ -84,7 +92,7 @@ data <- data %>%
     # Host vs. Displaced (IDPs and returnees)
     host_disagg = case_when(
       final_displacement_status_non_displ == "host" ~ "host",
-      final_displacement_status_non_displ %in% c("recent_idps", "non_recent_idp", "returnee") ~ "displaced",
+      final_displacement_status_non_displ %in% c("recent_idps", "non_recent_idps", "cross_border_returnees") ~ "displaced",
       TRUE ~ NA_character_
     ),
     # IDP Displacement Length
@@ -97,17 +105,16 @@ data <- data %>%
     # HoH sex version 2
     hoh_sex2_disagg = case_when(
       hoh_sex =="male" | hoh_marital_status == "married" ~ "male",
-      hoh_sex == "female" & hoh_marital_status %in% c("single", "widowed", "divorced") ~ "female",
+      hoh_sex == "female" & hoh_marital_status %in% c("single", "widowed", "divorced", "married_elsewhere_afg", "married_elsewhere_outside","no_answer") ~ "female",
       TRUE ~ NA_character_
     ),
     # Behavioural change
     behav_change_disagg = case_when(
-      adult_behavior_change == "yes" | child_behavior_change == "yes" ~ "yes",
-      adult_behavior_change == "yes" & is.na(child_behavior_change) ~ "yes",
-      adult_behavior_change == "no" & child_behavior_change == "no" ~ "no",
       adult_behavior_change == "no" & is.na(child_behavior_change) ~ "no",
       adult_behavior_change == "no_answer" & child_behavior_change == "no_answer" ~ "no",
       adult_behavior_change == "no_answer" & is.na(child_behavior_change) ~ "no",
+      adult_behavior_change == "yes" | child_behavior_change == "yes" ~ "yes",
+      adult_behavior_change == "no" &  child_behavior_change == "no" ~ "no",
       TRUE ~ NA_character_
     ),
     # Acute Watery Diarrhea (AWD)
