@@ -989,7 +989,7 @@ data$edu_removal_shock_cal <-  ifelse(data$shock_class == 5, "Yes", "No")
 data$enrolled_attending <- ifelse(data$count_enrolled_attending > 0, "Enrolled_and_Attending", "Not" ) 
 
 
-
+data <- data %>% filter(!is.na(province))
 source("r/prepare_disagg.R")
 
 # fliter prolematic feilds
@@ -1000,5 +1000,6 @@ uuid_filter <- c("ac3e8430-ba88-497b-9895-c1bd8da7f79e",
 
 `%notin%` <- Negate(`%in%`)
 data <- data %>% filter(uuid %notin% uuid_filter )
+
 
 write.csv(data, "./input/data/recoded/data_with_strata.csv", row.names = F)
