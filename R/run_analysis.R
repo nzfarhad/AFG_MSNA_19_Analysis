@@ -22,11 +22,12 @@ choices <- read.csv("input/questionnaire/questionnaire_choices.csv",
                     stringsAsFactors=F, check.names = F)
 
 ####### load sampling frame
+# samplingframe <- load_samplingframe("input/sampling_frames/sampling_frame_pop_group.csv")
 samplingframe <- load_samplingframe("input/sampling_frames/sampling_frame_overall.csv")
 
 
 # load analysis plan
-analysisplan <- load_analysisplan(file = "./input/analysisplans/analysisplan_composites_lcsi_disagg.csv")
+analysisplan <- load_analysisplan(file = "./input/analysisplans/disaggs/analysisplan_all_displacements_disagg.csv")
 
 
 # Load recoded clean data
@@ -34,6 +35,17 @@ response <- read.csv("./input/data/recoded/data_with_strata.csv") %>%
   mutate(strata = stringr::str_c(final_displacement_status_non_displ, "_", province),
          cluster_id = str_c(final_displacement_status_non_displ, "_", province, "_", survey_village)) %>%
   filter(strata %in% samplingframe$strata)
+
+# only for nutrition composite indicator
+# remove_pro <- c("uruzgan", "laghman",
+#                 "kunduz","kabul",
+#                 "baghlan")
+# `%notin%` <- Negate(`%in%`)
+# response <- response %>% filter(province %notin% remove_pro )
+# 
+# enum_muac_not <- c("ohw-zabul-12", "ohw-kandahar-1")
+# response <- response %>% filter(enumerator_uuid %notin% enum_muac_not)
+#####################################################################
 
 # check inputs
 # kobostandards::check_input(data = response, questions = questions, choices = choices ,samplingframe = samplingframe,
@@ -64,6 +76,7 @@ strata_weight_fun <- map_to_weighting(sampling.frame = samplingframe,
 response$general_weights <- strata_weight_fun(response)
 
 
+
 results <- from_analysisplan_map_to_output(response, analysisplan = analysisplan,
                                           weighting = strata_weight_fun,
                                           cluster_variable_name = "cluster_id",
@@ -72,15 +85,15 @@ results <- from_analysisplan_map_to_output(response, analysisplan = analysisplan
 
 ### results output
 labeled_results <- lapply(results$results, map_to_labeled,questionnaire)
-map_to_master_table(results_object =labeled_results, filename = "./output/results_comp_ind_sev_2_lsci.csv")
+map_to_master_table(results_object =labeled_results, filename = "./output/results_all_displacements_disagg.csv")
 
 
-pop_group_pivot <- response %>% group_by(final_displacement_status_non_displ) %>% tally()
+pop_group_pivot <- response %>% group_by(province) %>% tally()
 write.csv(table(response$final_displacement_status_non_displ), "hhs_included_in_analysis.csv", row.names = F)
-# write.csv(pop_group_pivot, "Overall_analysis_numbers_all.csv", row.names = F)
+write.csv(pop_group_pivot, "provinces included composite_nutrition_without_5_prov.csv", row.names = F)
 
 big_table <- results$results %>% lapply(function(x) x[["summary.statistic"]]) %>% do.call(rbind, .)
-write.csv(big_table,"./output/results_comp_ind_sev_2_lsci_short_names.csv")
+write.csv(big_table,"./output/results_all_displacements_disagg_short_names.csv")
 
 # datamerge <- dmerge(results$results)
 # write.csv(datamerge, "./output/results/fsa_datamerge_overall_and_disagg.csv", row.names = F)
@@ -97,7 +110,7 @@ hypegrammaR:::map_to_generic_hierarchical_html(results,
                                                questionnaire = questionnaire,
                                                label_varnames = TRUE,
                                                dir = "./output",
-                                               filename = "results_comp_ind_sev_2_lsci.html")
+                                               filename = "results_all_displacements_disagg.html")
 
 
 browseURL("./output/results.html")

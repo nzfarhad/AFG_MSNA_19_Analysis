@@ -134,4 +134,5 @@ data <- data %>%
       child_behavior_change == "no" ~ "no",
       child_behavior_change == "no_answer" ~ "no",
       TRUE ~ NA_character_
+    )
 )
