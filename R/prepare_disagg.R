@@ -28,7 +28,7 @@ data <- data %>%
     # Head of household disability
     hoh_disabled_disagg = case_when(
       wg_walking == "yes" |  wg_selfcare == "yes" ~ "disabled",
-      wg_walking == "no" |  wg_selfcare == "no" ~ "not_disabled",
+      wg_walking == "no" &  wg_selfcare == "no" ~ "not_disabled",
       TRUE ~ NA_character_
     ),
     # Urban or Rural
@@ -43,8 +43,8 @@ data <- data %>%
     ),
     # Literate adults
     literate_adult_disagg = case_when(
-      female_literacy == 0 & male_literacy == 0 ~ "no",
-      female_literacy >= 1 | male_literacy >= 1 ~ "yes",
+      female_literacy == 0 & male_literacy == 0 ~ "no_literate_adults",
+      female_literacy >= 1 | male_literacy >= 1 ~ "literate_adults",
       TRUE ~ NA_character_
     ),
     # Debt level
@@ -71,7 +71,7 @@ data <- data %>%
     ),
     # Registration of returnees
     registered_dissagg = case_when(
-      cb_return_documentation %in% c("yes_shown", "yes") ~ "registered",
+      cb_return_documentation == "yes_shown" | cb_return_documentation == "yes_not_shown" ~ "registered",
       cb_return_documentation == "no" ~ "not_registered",
       TRUE ~ NA_character_
     ),
@@ -83,13 +83,13 @@ data <- data %>%
     ),
     # Host vs. Displaced (IDPs and returnees)
     host_disagg = case_when(
-      final_displacement_status == "host" ~ "host",
-      final_displacement_status %in% c("recent_idps", "non_recent_idp", "returnee") ~ "displaced",
+      final_displacement_status_non_displ == "host" ~ "host",
+      final_displacement_status_non_displ %in% c("recent_idps", "non_recent_idp", "returnee") ~ "displaced",
       TRUE ~ NA_character_
     ),
     # IDP Displacement Length
     disp_length_disagg = case_when(
-      final_displacement_status == "recent_idps" ~ "recent",
+      final_displacement_status_non_displ == "recent_idps" ~ "recent",
       idp_displ_year <= 1 ~ "prolonged",
       idp_displ_year >= 2 ~ "protracted",
       TRUE ~ NA_character_
@@ -103,14 +103,17 @@ data <- data %>%
     # Behavioural change
     behav_change_disagg = case_when(
       adult_behavior_change == "yes" | child_behavior_change == "yes" ~ "yes",
+      adult_behavior_change == "yes" & is.na(child_behavior_change) ~ "yes",
       adult_behavior_change == "no" & child_behavior_change == "no" ~ "no",
+      adult_behavior_change == "no" & is.na(child_behavior_change) ~ "no",
       adult_behavior_change == "no_answer" & child_behavior_change == "no_answer" ~ "no",
+      adult_behavior_change == "no_answer" & is.na(child_behavior_change) ~ "no",
       TRUE ~ NA_character_
     ),
     # Acute Watery Diarrhea (AWD)
     awd_disagg = case_when(
-      diarrhea_cases >= 1 ~ "awd present",
-      diarrhea_cases == 0 ~ "no awd",
+      diarrhea_cases >= 1 ~ "awd_present",
+      diarrhea_cases == 0 ~ "no_awd",
       # adult_behavior_change == "no" & child_behavior_change == 0 ~ "some behavioural change",
       TRUE ~ NA_character_
     ),
