@@ -102,8 +102,9 @@ data <- data %>%
     ),
     # Behavioural change
     behav_change_disagg = case_when(
-      adult_behavior_change == "yes" | child_behavior_change == "yes" ~ "some behavioural change",
-      adult_behavior_change == "no" & child_behavior_change == "yes" ~ "some behavioural change",
+      adult_behavior_change == "yes" | child_behavior_change == "yes" ~ "yes",
+      adult_behavior_change == "no" & child_behavior_change == "no" ~ "no",
+      adult_behavior_change == "no_answer" & child_behavior_change == "no_answer" ~ "no",
       TRUE ~ NA_character_
     ),
     # Acute Watery Diarrhea (AWD)
@@ -112,5 +113,25 @@ data <- data %>%
       diarrhea_cases == 0 ~ "no awd",
       # adult_behavior_change == "no" & child_behavior_change == 0 ~ "some behavioural change",
       TRUE ~ NA_character_
-    )
+    ),
+    #Water source 
+    water_src_disagg = case_when(
+      water_source == "handpump_private" | water_source == "handpump_public" |
+        water_source == "piped_public" | water_source == "spring_protected" ~ "improved",
+      water_source == "spring_unprotected" | water_source == "surface_water" |
+        water_source == "water_trucking" | water_source == "other" ~ "unimproved",
+      TRUE ~ NA_character_
+    ),
+    #Soap
+    soap_disagg = case_when(
+      soap == "yes_saw" ~ "yes",
+      soap == "no" | soap == "yes_didnt_see"  ~ "no",
+      TRUE ~ NA_character_
+    ),
+    # Child behavior change
+    child_behav_change_disagg = case_when(
+      child_behavior_change == "yes" ~ "yes",
+      child_behavior_change == "no" ~ "no",
+      child_behavior_change == "no_answer" ~ "no",
+      TRUE ~ NA_character_
 )
