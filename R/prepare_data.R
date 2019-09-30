@@ -565,8 +565,7 @@ data$edu_age_boys_girls_num <-  comp_score(data, c("boys_ed","girls_ed"))
 food_water_rent_vars <- c(
   "food_exp",
   "water_expt",
-  "rent_exp",
-  "total_income"
+  "rent_exp"
 )
 data$food_water_rent_num <- comp_score(data, food_water_rent_vars)
 
@@ -875,7 +874,7 @@ data <- data %>%
     ),  
     diarrhea_cases_cal = case_when(
       diarrhea_cases == 0 ~ 0,
-      diarrhea_cases > 0 ~    diarrhea_cases / children_under5,
+      diarrhea_cases > 0 ~    diarrhea_cases / diarrhea_total,
       TRUE ~ NA_real_
     ), 
     imp_water_source1_cal = case_when(
