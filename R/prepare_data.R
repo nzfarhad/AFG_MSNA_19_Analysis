@@ -16,11 +16,20 @@ chr<-as.character
 coerc<-function(x){as.numeric(chr(x))}
 
 # load data 
-data <- read_excel(master_data, sheet = "MSNA_AFG_19_parent_sheet", na = c("","NA"), guess_max = 3000)
-overall_muac_data <- read_excel(master_data, sheet = "MSNA_AFG_19_muac" , na = c("","NA"))
-overall_hh_roster <- read_excel(master_data, sheet = "MSNA_AFG_19_hh_roster" , na = c("","NA"))
-overall_death_roster <- read_excel(master_data, sheet = "MSNA_AFG_19_hh_death_roster" , na = c("","NA"))
-overall_left_roster <- read_excel( master_data, sheet = "MSNA_AFG_19_hh_left_roster" , na = c("","NA"))
+# data <- read_excel(master_data, sheet = "MSNA_AFG_19_parent_sheet", na = c("","NA"), guess_max = 3000)
+# overall_muac_data <- read_excel(master_data, sheet = "MSNA_AFG_19_muac" , na = c("","NA"))
+# overall_hh_roster <- read_excel(master_data, sheet = "MSNA_AFG_19_hh_roster" , na = c("","NA"))
+# overall_death_roster <- read_excel(master_data, sheet = "MSNA_AFG_19_hh_death_roster" , na = c("","NA"))
+# overall_left_roster <- read_excel( master_data, sheet = "MSNA_AFG_19_hh_left_roster" , na = c("","NA"))
+
+
+data <- read.csv("input/data/clean/MSNA_AFG_19_parent_sheet.csv",stringsAsFactors=F,na.strings = c("", "NA"), check.names = F)
+overall_muac_data <- read.csv("input/data/clean/MSNA_AFG_19_muac.csv",stringsAsFactors=F,na.strings = c("", "NA"), check.names = F)
+overall_hh_roster <- read.csv("input/data/clean/MSNA_AFG_19_hh_roster.csv",stringsAsFactors=F,na.strings = c("", "NA"), check.names = F)
+overall_death_roster <- read.csv("input/data/clean/MSNA_AFG_19_hh_death_roster.csv",stringsAsFactors=F,na.strings = c("", "NA"), check.names = F)
+overall_left_roster <- read.csv("input/data/clean/MSNA_AFG_19_hh_left_roster.csv",stringsAsFactors=F,na.strings = c("", "NA"), check.names = F)
+
+
 
 # Temp for the data is exported out of kobo incorrectly. 
 rename1 <- function(d1) {
@@ -250,6 +259,52 @@ data <- data %>%
   )
 
 
+
+
+
+################## protection new indicator ######################
+
+
+prot_all_indictors <-  c(
+  "adult_prot_incidents.verbally_threatened",
+  "adult_prot_incidents.assaulted_without_weapon",
+  "adult_prot_incidents.assaulted_with_weapon",
+  "adult_prot_incidents.hindered_leave_settlement",
+  "adult_prot_incidents.hindered_leave_district",
+  "adult_prot_incidents.forced_work",
+  "adult_prot_incidents.forcibly_detained",
+  "child_prot_incidents.verbally_threatened",
+  "child_prot_incidents.assaulted_without_weapon",
+  "child_prot_incidents.assaulted_with_weapon",
+  "child_prot_incidents.hindered_leave_settlement",
+  "child_prot_incidents.hindered_leave_district",
+  "child_prot_incidents.forced_work",
+  "child_prot_incidents.forcibly_detained",
+  "other_incidents.sgbv",
+  "other_incidents.other",
+  "prot_concerns.violence_maiming",
+  "prot_concerns.violence_injuries",
+  "prot_concerns.psych_wellbeing",
+  "prot_concerns.abduction",
+  "prot_concerns.theft",
+  "prot_concerns.explosive_hazards",
+  "prot_concerns.destruction_property",
+  "prot_concerns.early_marriage",
+  "prot_concerns.other",
+  "other_concerns.sgbv",
+  "other_concerns.other"
+  
+)
+data$prot_all_indictors_score <- comp_score(data, prot_all_indictors)
+
+data <- data %>% 
+  mutate(
+  prot_new_indicator = case_when(
+    prot_all_indictors_score >= 1 ~ ">=1",
+    prot_all_indictors_score == 0 ~ "0",
+    TRUE ~ NA_character_
+  )
+)
 
 #################################################################
 
@@ -877,6 +932,11 @@ data <- data %>%
       diarrhea_cases > 0 ~    diarrhea_cases / diarrhea_total,
       TRUE ~ NA_real_
     ), 
+    perc_diarrhea_cases_cal = case_when(
+      diarrhea_cases == 0 ~ "0",
+      diarrhea_cases > 0 ~ ">=1",
+      TRUE ~ NA_character_
+    ),
     imp_water_source1_cal = case_when(
       water_source %in% c("handpump_private", "handpump_public",
                           "piped_public", "spring_protected") ~ 1,
@@ -933,7 +993,7 @@ data <- data %>%
     ),
     atleast_one_behav_change_call = case_when(
       child_behavior_change_call == 0 & adult_behavior_change_call == 0 ~ 0,
-      child_behavior_change_call > 0 & adult_behavior_change_call > 0 ~ 1,
+      child_behavior_change_call > 0 | adult_behavior_change_call > 0 ~ 1,
       TRUE ~ NA_real_
     ),
     adults_working_call = case_when(
@@ -999,6 +1059,17 @@ uuid_filter <- c("ac3e8430-ba88-497b-9895-c1bd8da7f79e",
 
 `%notin%` <- Negate(`%in%`)
 data <- data %>% filter(uuid %notin% uuid_filter )
+
+#join main dataset var to hh roster
+data_sub <- data %>% select(final_displacement_status_non_displ, region_disagg, urban_disagg,
+                            hoh_sex_disagg, hoh_disabled_disagg, hoh_elderly_disagg,
+                            tazkira_disagg3, hoh_debt_disagg , uuid)
+
+
+hh_roster_joined <- koboloops::add_parent_to_loop(overall_hh_roster, data_sub, uuid.name.loop = "_submission__uuid", uuid.name.parent = "uuid")
+write.csv(hh_roster_joined, "./input/data/recoded/hh_roster.csv", row.names = F)
+
+
 
 
 write.csv(data, "./input/data/recoded/data_with_strata.csv", row.names = F)
