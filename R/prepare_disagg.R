@@ -134,8 +134,8 @@ data <- data %>%
     ),
     #Soap
     soap_disagg = case_when(
-      soap == "yes_saw" ~ "yes",
-      soap == "no" | soap == "yes_didnt_see"  ~ "no",
+      soap == "yes_saw" | soap == "yes_didnt_see" ~ "yes",
+      soap == "no"  ~ "no",
       TRUE ~ NA_character_
     ),
     # Child behavior change
