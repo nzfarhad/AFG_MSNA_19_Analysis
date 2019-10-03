@@ -259,10 +259,7 @@ data <- data %>%
   )
 
 
-
-
-
-################## protection new indicator ######################
+################## protection new indicator 1 ######################
 
 
 prot_all_indictors <-  c(
@@ -299,12 +296,123 @@ data$prot_all_indictors_score <- comp_score(data, prot_all_indictors)
 
 data <- data %>% 
   mutate(
-  prot_new_indicator = case_when(
+  prot_new_indicator_1 = case_when(
     prot_all_indictors_score >= 1 ~ ">=1",
     prot_all_indictors_score == 0 ~ "0",
     TRUE ~ NA_character_
   )
 )
+
+
+################## protection new indicator 2 ######################
+
+data <- data %>% 
+  mutate( displ_explosive_presence_na_to_0 = case_when(
+    displ_explosive_presence == "both" ~ 1,
+    displ_explosive_presence == "current" ~ 1,
+    displ_explosive_presence == "previous" ~ 1,
+    displ_explosive_presence == "no" ~ 0,
+    TRUE ~ 0
+  )
+  )
+
+
+prot_all_indictors_2 <-  c(
+  "adult_prot_incidents.verbally_threatened",
+  "adult_prot_incidents.assaulted_without_weapon",
+  "adult_prot_incidents.assaulted_with_weapon",
+  "adult_prot_incidents.hindered_leave_settlement",
+  "adult_prot_incidents.hindered_leave_district",
+  "adult_prot_incidents.forced_work",
+  "adult_prot_incidents.forcibly_detained",
+  "child_prot_incidents.verbally_threatened",
+  "child_prot_incidents.assaulted_without_weapon",
+  "child_prot_incidents.assaulted_with_weapon",
+  "child_prot_incidents.hindered_leave_settlement",
+  "child_prot_incidents.hindered_leave_district",
+  "child_prot_incidents.forced_work",
+  "child_prot_incidents.forcibly_detained",
+  "other_incidents.sgbv",
+  "other_incidents.other",
+  "prot_concerns.violence_maiming",
+  "prot_concerns.violence_injuries",
+  "prot_concerns.psych_wellbeing",
+  "prot_concerns.abduction",
+  "prot_concerns.theft",
+  "prot_concerns.explosive_hazards",
+  "prot_concerns.destruction_property",
+  "prot_concerns.early_marriage",
+  "prot_concerns.other",
+  "other_concerns.sgbv",
+  "other_concerns.other",
+  "displ_explosive_presence_na_to_0"
+  
+)
+data$prot_all_indictors_score_2 <- comp_score(data, prot_all_indictors_2)
+
+data <- data %>% 
+  mutate(
+    prot_new_indicator_2 = case_when(
+      prot_all_indictors_score_2 >= 1 ~ ">=1",
+      prot_all_indictors_score_2 == 0 ~ "0",
+      TRUE ~ NA_character_
+    )
+  )
+
+################## protection new indicator 3 ######################
+
+data <- data %>% 
+  mutate( nondispl_explosive_presence_na_to_0 = case_when(
+    nondispl_explosive_presence == "yes" ~ 1,
+    nondispl_explosive_presence == "no" ~ 0,
+    TRUE ~ 0
+  )
+)
+
+prot_all_indictors_3 <-  c(
+  "adult_prot_incidents.verbally_threatened",
+  "adult_prot_incidents.assaulted_without_weapon",
+  "adult_prot_incidents.assaulted_with_weapon",
+  "adult_prot_incidents.hindered_leave_settlement",
+  "adult_prot_incidents.hindered_leave_district",
+  "adult_prot_incidents.forced_work",
+  "adult_prot_incidents.forcibly_detained",
+  "child_prot_incidents.verbally_threatened",
+  "child_prot_incidents.assaulted_without_weapon",
+  "child_prot_incidents.assaulted_with_weapon",
+  "child_prot_incidents.hindered_leave_settlement",
+  "child_prot_incidents.hindered_leave_district",
+  "child_prot_incidents.forced_work",
+  "child_prot_incidents.forcibly_detained",
+  "other_incidents.sgbv",
+  "other_incidents.other",
+  "prot_concerns.violence_maiming",
+  "prot_concerns.violence_injuries",
+  "prot_concerns.psych_wellbeing",
+  "prot_concerns.abduction",
+  "prot_concerns.theft",
+  "prot_concerns.explosive_hazards",
+  "prot_concerns.destruction_property",
+  "prot_concerns.early_marriage",
+  "prot_concerns.other",
+  "other_concerns.sgbv",
+  "other_concerns.other",
+  "displ_explosive_presence_na_to_0",
+  "nondispl_explosive_presence_na_to_0"
+  
+)
+data$prot_all_indictors_score_3 <- comp_score(data, prot_all_indictors_3)
+
+data <- data %>% 
+  mutate(
+    prot_new_indicator_3 = case_when(
+      prot_all_indictors_score_3 >= 1 ~ ">=1",
+      prot_all_indictors_score_3 == 0 ~ "0",
+      TRUE ~ NA_character_
+    )
+  )
+
+
 
 #################################################################
 
