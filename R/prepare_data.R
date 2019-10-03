@@ -412,7 +412,60 @@ data <- data %>%
     )
   )
 
+################## protection new indicator 4 ######################
 
+data <- data %>% 
+  mutate( 
+      lcsi_category_class2 = case_when(
+        lcsi_category == "food_secure" | lcsi_category == "marginally_insecure" ~ 0,
+        lcsi_category == "moderately_insecure" | lcsi_category == "severely_insecure" ~ 1,
+        TRUE ~ 0
+    )
+  )
+
+prot_all_indictors_4 <-  c(
+  "adult_prot_incidents.verbally_threatened",
+  "adult_prot_incidents.assaulted_without_weapon",
+  "adult_prot_incidents.assaulted_with_weapon",
+  "adult_prot_incidents.hindered_leave_settlement",
+  "adult_prot_incidents.hindered_leave_district",
+  "adult_prot_incidents.forced_work",
+  "adult_prot_incidents.forcibly_detained",
+  "child_prot_incidents.verbally_threatened",
+  "child_prot_incidents.assaulted_without_weapon",
+  "child_prot_incidents.assaulted_with_weapon",
+  "child_prot_incidents.hindered_leave_settlement",
+  "child_prot_incidents.hindered_leave_district",
+  "child_prot_incidents.forced_work",
+  "child_prot_incidents.forcibly_detained",
+  "other_incidents.sgbv",
+  "other_incidents.other",
+  "prot_concerns.violence_maiming",
+  "prot_concerns.violence_injuries",
+  "prot_concerns.psych_wellbeing",
+  "prot_concerns.abduction",
+  "prot_concerns.theft",
+  "prot_concerns.explosive_hazards",
+  "prot_concerns.destruction_property",
+  "prot_concerns.early_marriage",
+  "prot_concerns.other",
+  "other_concerns.sgbv",
+  "other_concerns.other",
+  "displ_explosive_presence_na_to_0",
+  "nondispl_explosive_presence_na_to_0",
+  "lcsi_category_class2"
+  
+)
+data$prot_all_indictors_score_4 <- comp_score(data, prot_all_indictors_4)
+
+data <- data %>% 
+  mutate(
+    prot_new_indicator_4 = case_when(
+      prot_all_indictors_score_4 >= 1 ~ ">=1",
+      prot_all_indictors_score_4 == 0 ~ "0",
+      TRUE ~ NA_character_
+    )
+  )
 
 #################################################################
 
