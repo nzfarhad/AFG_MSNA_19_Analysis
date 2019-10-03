@@ -716,8 +716,6 @@ data$lcsi_severity<-car::recode(data$lcsi_category,
 
 
 
-#################################################################
-
 ## Indicators ####
 
 
@@ -1156,8 +1154,115 @@ data$edu_removal_shock_cal <-  ifelse(data$shock_class == 5, "Yes", "No")
 data$enrolled_attending <- ifelse(data$count_enrolled_attending > 0, "Enrolled_and_Attending", "Not" ) 
 
 
-data <- data %>% filter(!is.na(province))
+## source disaggs
 source("r/prepare_disagg.R")
+############################# Vulnerablity composites ###################################
+
+data <- data %>% 
+  mutate(
+    hoh_disabled_vul_class = case_when(
+      data$hoh_disabled == "disabled" ~ 1,
+      data$hoh_disabled == "not_disabled" ~ 0,
+      TRUE ~ 0
+    ),
+    hoh_debt_disagg_vul_class = case_when(
+      hoh_debt_disagg == "high_debt" ~ 1,
+      hoh_debt_disagg == "low_debt" ~ 0,
+      hoh_debt_disagg == "medium_debt" ~ 0,
+      hoh_debt_disagg == "no_debt" ~ 0,
+      TRUE ~ 0
+    ),
+    tazkira_disagg_vul_class = case_when(
+      tazkira_disagg == "non_have_tazkira" ~ 1,
+      tazkira_disagg == "all_have_tazkira" ~ 0,
+      TRUE ~ 0
+    ),
+    hoh_age_group_vul_class = case_when(
+      hoh_age_group == "65+" ~ 1,
+      hoh_age_group == "<65" ~ 0,
+      TRUE ~ 0
+    ),
+    hoh_sex_disagg_vul_class = case_when(
+      hoh_sex_disagg == "female" ~ 1, 
+      hoh_sex_disagg == "male" ~ 0,
+      TRUE ~ 0
+    ),
+    pregnant_lactating_member_vul_class = case_when(
+      pregnant_lactating_member == "at_least_one_mem_pregnant_lactating" ~ 1, 
+      pregnant_lactating_member == "no_mem_pregnent_lactating" ~ 0,
+      TRUE ~ 0
+    ),
+    chronic_illness_vul_class = case_when(
+      chronic_illness == "yes" ~ 1,
+      chronic_illness == "no " ~ 0,
+      chronic_illness == "no_answer" ~ 0,
+      TRUE ~ 0
+    ),
+    literacy_vul_class = case_when(
+      female_literacy_yes_no == "0" & male_literacy_yes_no == "0"  ~ 1,
+      female_literacy_yes_no == "1 or more" ~ 0,
+      male_literacy_yes_no == "1 or more" ~ 0,
+      TRUE ~ 0
+    ),
+    behav_change_disagg_vul_class = case_when(
+      behav_change_disagg == "yes" ~ 1,
+      behav_change_disagg == "no" ~ 0,
+      TRUE ~ 0
+    )
+  )
+
+
+## Vulnerable_group_1
+Vulnerable_group_1_vars <- c(
+  "hoh_disabled_vul_class",
+  "hoh_debt_disagg_vul_class",
+  "tazkira_disagg_vul_class",
+  "hoh_age_group_vul_class",
+  "hoh_sex_disagg_vul_class",
+  "chronic_illness_vul_class",
+  "literacy_vul_class"
+)
+
+data$Vulnerable_group_1_vars_score <- comp_score(data, Vulnerable_group_1_vars)
+
+
+data <- data %>% 
+  mutate(
+    vulnerable_group_1 = case_when(
+      Vulnerable_group_1_vars_score >= 1 ~ "vulnerable",
+      Vulnerable_group_1_vars_score == 0 ~ "not_vulnerable",
+      TRUE ~ NA_character_
+    )
+  )
+
+## vulnerable_group_4
+Vulnerable_group_4_vars <- c(
+  "hoh_disabled_vul_class",
+  "hoh_debt_disagg_vul_class",
+  "tazkira_disagg_vul_class",
+  "hoh_age_group_vul_class",
+  "hoh_sex_disagg_vul_class",
+  "behav_change_disagg_vul_class"
+)
+
+data$Vulnerable_group_4_vars_score <- comp_score(data, Vulnerable_group_4_vars)
+
+
+data <- data %>% 
+  mutate(
+    vulnerable_group_4 = case_when(
+      Vulnerable_group_4_vars_score >= 1 ~ "vulnerable",
+      Vulnerable_group_4_vars_score == 0 ~ "not_vulnerable",
+      TRUE ~ NA_character_
+    )
+  )
+
+
+#################################################################
+
+
+
+data <- data %>% filter(!is.na(province))
 
 # fliter prolematic feilds
 uuid_filter <- c("ac3e8430-ba88-497b-9895-c1bd8da7f79e",
