@@ -1311,9 +1311,191 @@ data <- data %>%
   )
 
 
-#################################################################
+## Vulnerable_group_5
+Vulnerable_group_5_vars <- c(
+  "hoh_disabled_vul_class",
+  "hoh_debt_disagg_vul_class",
+  "tazkira_disagg_vul_class",
+  "hoh_age_group_vul_class",
+  "hoh_sex_disagg_vul_class",
+  "pregnant_lactating_member_vul_class",
+  "chronic_illness_vul_class",
+  "behav_change_disagg_vul_class",
+  "literacy_vul_class"
+)
+
+data$Vulnerable_group_5_vars_score <- comp_score(data, Vulnerable_group_5_vars)
+
+data <- data %>% 
+  mutate(
+    vulnerable_group_5 = case_when(
+      Vulnerable_group_5_vars_score >= 1 ~ "vulnerable",
+      Vulnerable_group_5_vars_score == 0 ~ "not_vulnerable",
+      TRUE ~ NA_character_
+    )
+  )
 
 
+
+###############################################end
+
+#########################
+## esnfi_new_indicator_1
+
+data <- data %>% 
+  mutate(
+    shelter_class2 = case_when(
+      shelter == "tent" | shelter == "collective_centre" | shelter == "makeshift_shelter" |
+        shelter == "open_space" ~ 1,
+      shelter == "transitional" | shelter == "permanent" ~ 0,
+      TRUE ~ 0
+    ),
+    shelter_damage_and_repair_class = case_when(
+      (shelter_damage.due_to_conflict == 1 | shelter_damage.due_to_natural_disaster == 1) &
+        shelter_damage_repair == "no" ~ 1,
+      shelter_damage.no == 1 | shelter_damage_repair == "yes" ~ 0,
+      TRUE ~ 0
+    ),
+    priority_nfi_cal_class = case_when(
+      priority_nfi_cal == "0_1" | priority_nfi_cal == "2_3" ~ 1,
+      priority_nfi_cal == "4_5" | priority_nfi_cal == "6" ~ 0,
+      TRUE ~ 0
+      
+    )
+  )
+
+esnfi_new_indicator_1_vars <- c(
+  "shelter_class2",
+  "shelter_damage_and_repair_class",
+  "priority_nfi_cal_class"
+)
+
+
+esnfi_new_indicator_1_vars_score <- comp_score(data, esnfi_new_indicator_1_vars)
+
+data <- data %>% 
+  mutate(
+    esnfi_new_indicator_1 = case_when(
+      esnfi_new_indicator_1_vars_score >= 1 ~ 1,
+      esnfi_new_indicator_1_vars_score == 0 ~ 0,
+      TRUE ~ 0
+    )
+  )
+
+###################################end
+
+######## wash_new_indicator 1#######
+
+data <- data %>% 
+  mutate(
+    water_source_class2 = case_when(
+      water_source == "spring_unprotected" | water_source == "surface_water" | water_source == "water_trucking" |
+        water_source == "other" ~ 1,
+      water_source == "handpump_private" | water_source == "handpump_public" | water_source == "handpump_public" |
+        water_source == "spring_protected" ~ 0,
+      TRUE ~ 0
+    ),
+    latrine_class2 = case_when(
+      latrine == "open" | latrine == "pit_latrine_uncovered" | latrine == "other" ~ 1,
+      latrine == "public_latrine" | latrine == "pit_latrine_covered" | latrine == "vip_latrine" |
+        latrine == "flush_toilet_open_drain" | latrine == "flush_toilet_septic" ~ 0,
+      TRUE ~ 0
+    ),
+    soap_class2 = case_when(
+      soap == "no" ~ 1,
+      soap == "yes_didnt_see" | soap == "yes_saw" ~ 0,
+      TRUE ~ 0
+    ),
+    diarrhea_cases_class = case_when(
+      diarrhea_cases >= 1 ~ 1,
+      diarrhea_cases == 0 ~ 0,
+      TRUE ~ 0
+    )
+  )
+
+
+wash_new_indicator_1_vars <- c(
+  "water_source_class2",
+  "latrine_class2",
+  "soap_class2"
+)
+
+
+wash_new_indicator_1_vars_score <- comp_score(data, wash_new_indicator_1_vars)
+
+data <- data %>% 
+  mutate(
+    wash_new_indicator_1 = case_when(
+      wash_new_indicator_1_vars_score >= 2 ~ 1,
+      wash_new_indicator_1_vars_score == 0 ~ 0,
+      TRUE ~ 0
+    )
+  )
+##############################################end
+
+######## wash_new_indicator 2 #######
+
+wash_new_indicator_2_vars <- c(
+  "water_source_class2",
+  "latrine_class2",
+  "soap_class2",
+  "diarrhea_cases_class"
+)
+
+
+wash_new_indicator_2_vars_score <- comp_score(data, wash_new_indicator_2_vars)
+
+data <- data %>% 
+  mutate(
+    wash_new_indicator_2 = case_when(
+      wash_new_indicator_2_vars_score >= 2 ~ 1,
+      wash_new_indicator_2_vars_score == 0 ~ 0,
+      TRUE ~ 0
+    )
+  )
+
+############# winterization_indicator ##################
+data <- data %>% 
+  mutate(
+    shelter_class3 = case_when(
+      shelter == "tent" | shelter == "collective_centre" | shelter == "makeshift_shelter" |
+        shelter == "open_space" ~ 1,
+      shelter == "transitional" | shelter == "permanent" ~ 0,
+      TRUE ~ 0
+    ),
+    blankets_suff_cal_class = case_when(
+      blankets_suff_cal == "<1" ~ 1,
+      blankets_suff_cal == "1+" ~ 0,
+      TRUE ~ 0
+    ),
+    energy_source_class = case_when(
+      energy_source == "animal_waste" | energy_source == "charcoal" | energy_source == "paper_waste" | 
+        energy_source == "wood" ~ 1,
+      energy_source == "coal" | energy_source == "lpg" | energy_source == "electricity" |
+        energy_source == "other" ~ 0,
+      TRUE ~ 0
+    )
+    
+  )
+
+winterization_indicator_vars <- c(
+  "shelter_class3",
+  "blankets_suff_cal_class",
+  "energy_source_class"
+)
+
+
+winterization_indicator_vars_score <- comp_score(data, winterization_indicator_vars)
+
+data <- data %>% 
+  mutate(
+    winterization_indicator = case_when(
+      winterization_indicator_vars_score >= 2 ~ 1,
+      winterization_indicator_vars_score == 0 ~ 0,
+      TRUE ~ 0
+    )
+  )
+################################################end
 
 data <- data %>% filter(!is.na(province))
 

@@ -23,11 +23,11 @@ choices <- read.csv("input/questionnaire/questionnaire_choices.csv",
 
 ####### load sampling frame
 # samplingframe <- load_samplingframe("input/sampling_frames/sampling_frame_pop_group.csv")
-samplingframe <- load_samplingframe("input/sampling_frames/sampling_frame_overall.csv")
-
+# samplingframe <- load_samplingframe("input/sampling_frames/sampling_frame_overall.csv")
+samplingframe <- load_samplingframe("input/sampling_frames/sampling_frame_vulnerabilty.csv")
 
 # load analysis plan
-analysisplan <- load_analysisplan(file = "./input/analysisplans/disaggs/analysisplan_all_displacements_disagg.csv")
+analysisplan <- load_analysisplan(file = "./input/analysisplans/analysisplan_wash_incator_2.csv")
 
 
 # Load recoded clean data
@@ -73,8 +73,9 @@ strata_weight_fun <- map_to_weighting(sampling.frame = samplingframe,
                  data.stratum.column = "strata",
                  data = response)
 
-response$general_weights <- strata_weight_fun(response)
 
+response$general_weights <- strata_weight_fun(response)
+# write.csv(response, "hh_roster_with_weights.csv", row.names = F)
 
 
 results <- from_analysisplan_map_to_output(response, analysisplan = analysisplan,
@@ -85,15 +86,16 @@ results <- from_analysisplan_map_to_output(response, analysisplan = analysisplan
 
 ### results output
 labeled_results <- lapply(results$results, map_to_labeled,questionnaire)
-map_to_master_table(results_object =labeled_results, filename = "./output/results_all_displacements_disagg.csv")
+map_to_master_table(results_object =labeled_results, filename = "./output/results_wash_incator_2_trsh_2.csv")
 
 
-pop_group_pivot <- response %>% group_by(province) %>% tally()
-write.csv(table(response$final_displacement_status_non_displ), "hhs_included_in_analysis.csv", row.names = F)
-write.csv(pop_group_pivot, "provinces included composite_nutrition_without_5_prov.csv", row.names = F)
+# pop_group_pivot <- response %>% group_by(final_displacement_status_non_displ) %>% tally()
+# write.csv(table(response$final_displacement_status_non_displ), "hhs_included_in_analysis.csv", row.names = F)
+# write.csv(pop_group_pivot, "pop_groups_by_displacement_by_province.csv", row.names = F)
+
 
 big_table <- results$results %>% lapply(function(x) x[["summary.statistic"]]) %>% do.call(rbind, .)
-write.csv(big_table,"./output/results_all_displacements_disagg_short_names.csv")
+write.csv(big_table,"./output/results_prot_new_indicator_short_names.csv")
 
 # datamerge <- dmerge(results$results)
 # write.csv(datamerge, "./output/results/fsa_datamerge_overall_and_disagg.csv", row.names = F)
@@ -110,10 +112,10 @@ hypegrammaR:::map_to_generic_hierarchical_html(results,
                                                questionnaire = questionnaire,
                                                label_varnames = TRUE,
                                                dir = "./output",
-                                               filename = "results_all_displacements_disagg.html")
+                                               filename = "rresults_prot_new_indicator_4_vulnerability_disagg.html")
 
 
-browseURL("./output/results.html")
+browseURL("./output/rresults_prot_new_indicator_4_vulnerability_disagg.html")
 
 
 
