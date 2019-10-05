@@ -1540,7 +1540,20 @@ data <- data %>% filter(uuid %notin% uuid_filter )
 #join main dataset var to hh roster
 data_sub <- data %>% select(final_displacement_status_non_displ, region_disagg, urban_disagg,
                             hoh_sex_disagg, hoh_disabled_disagg, hoh_elderly_disagg,
-                            tazkira_disagg3, hoh_debt_disagg , uuid)
+                            tazkira_disagg3, hoh_debt_disagg , vulnerable_group_4, uuid)
+
+overall_hh_roster <- overall_hh_roster %>%
+mutate(
+  school_age = case_when(
+    hh_member_age >=6 & hh_member_age <= 18 ~ "school age",
+    TRUE ~ "not school age"
+  ),
+  current_year_attending_na_no = case_when(
+    current_year_attending == "no" ~ "no",
+    current_year_attending == "yes" ~ "yes",
+    TRUE & school_age == "school age" ~ "no"
+  )
+)
 
 
 hh_roster_joined <- koboloops::add_parent_to_loop(overall_hh_roster, data_sub, uuid.name.loop = "_submission__uuid", uuid.name.parent = "uuid")
