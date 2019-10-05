@@ -1261,6 +1261,11 @@ data <- data %>%
       behav_change_disagg == "yes" ~ 1,
       behav_change_disagg == "no" ~ 0,
       TRUE ~ 0
+    ),
+    female_literacy_yes_no_class = case_when(
+      female_literacy_yes_no == "0" ~ 1,
+      female_literacy_yes_no == "1 or more" ~ 0,
+      TRUE ~ 0
     )
   )
 
@@ -1331,6 +1336,30 @@ data <- data %>%
     vulnerable_group_5 = case_when(
       Vulnerable_group_5_vars_score >= 1 ~ "vulnerable",
       Vulnerable_group_5_vars_score == 0 ~ "not_vulnerable",
+      TRUE ~ NA_character_
+    )
+  )
+
+## Vulnerable_group_6
+
+Vulnerable_group_6_vars <- c(
+  "hoh_disabled_vul_class",
+  "hoh_debt_disagg_vul_class",
+  "tazkira_disagg_vul_class",
+  "hoh_age_group_vul_class",
+  "hoh_sex_disagg_vul_class",
+  "behav_change_disagg_vul_class",
+  "female_literacy_yes_no_class"
+)
+
+data$Vulnerable_group_6_vars_score <- comp_score(data, Vulnerable_group_6_vars)
+
+
+data <- data %>% 
+  mutate(
+    vulnerable_group_6 = case_when(
+      Vulnerable_group_6_vars_score >= 1 ~ "vulnerable",
+      Vulnerable_group_6_vars_score == 0 ~ "not_vulnerable",
       TRUE ~ NA_character_
     )
   )
