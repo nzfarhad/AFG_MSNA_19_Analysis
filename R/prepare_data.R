@@ -469,6 +469,114 @@ data <- data %>%
 
 #################################################################
 
+################## protection new indicator 5 ######################
+
+
+
+
+prot_all_indictors_5 <-  c(
+  "adult_prot_incidents.verbally_threatened",
+  "adult_prot_incidents.assaulted_without_weapon",
+  "adult_prot_incidents.assaulted_with_weapon",
+  "adult_prot_incidents.hindered_leave_settlement",
+  "adult_prot_incidents.hindered_leave_district",
+  "adult_prot_incidents.forced_work",
+  "adult_prot_incidents.forcibly_detained",
+  "child_prot_incidents.verbally_threatened",
+  "child_prot_incidents.assaulted_without_weapon",
+  "child_prot_incidents.assaulted_with_weapon",
+  "child_prot_incidents.hindered_leave_settlement",
+  "child_prot_incidents.hindered_leave_district",
+  "child_prot_incidents.forced_work",
+  "child_prot_incidents.forcibly_detained",
+  "other_incidents.sgbv",
+  "other_incidents.other",
+  "prot_concerns.violence_maiming",
+  "prot_concerns.violence_injuries",
+  "prot_concerns.psych_wellbeing",
+  "prot_concerns.abduction",
+  "prot_concerns.theft",
+  "prot_concerns.explosive_hazards",
+  "prot_concerns.destruction_property",
+  "prot_concerns.early_marriage",
+  "prot_concerns.other",
+  "other_concerns.sgbv",
+  "other_concerns.other",
+  "displ_explosive_presence_na_to_0",
+  "nondispl_explosive_presence_na_to_0",
+  "lcsi_category_class2",
+  "children_work_safety_class"
+  
+)
+data$prot_all_indictors_score_5 <- comp_score(data, prot_all_indictors_5)
+
+data <- data %>% 
+  mutate(
+    prot_new_indicator_5 = case_when(
+      prot_all_indictors_score_5 >= 1 ~ ">=1",
+      prot_all_indictors_score_5 == 0 ~ "0",
+      TRUE ~ NA_character_
+    )
+  )
+
+################## protection new indicator 6 ######################
+
+data <- data %>% 
+  mutate(
+    other_impact_class = case_when(
+    other_impact.injury_death == 1 | other_impact.new_mines == 1  ~ 1,
+    TRUE ~ 0
+    )
+  )
+
+prot_all_indictors_6 <-  c(
+  "adult_prot_incidents.verbally_threatened",
+  "adult_prot_incidents.assaulted_without_weapon",
+  "adult_prot_incidents.assaulted_with_weapon",
+  "adult_prot_incidents.hindered_leave_settlement",
+  "adult_prot_incidents.hindered_leave_district",
+  "adult_prot_incidents.forced_work",
+  "adult_prot_incidents.forcibly_detained",
+  "child_prot_incidents.verbally_threatened",
+  "child_prot_incidents.assaulted_without_weapon",
+  "child_prot_incidents.assaulted_with_weapon",
+  "child_prot_incidents.hindered_leave_settlement",
+  "child_prot_incidents.hindered_leave_district",
+  "child_prot_incidents.forced_work",
+  "child_prot_incidents.forcibly_detained",
+  "other_incidents.sgbv",
+  "other_incidents.other",
+  "prot_concerns.violence_maiming",
+  "prot_concerns.violence_injuries",
+  "prot_concerns.psych_wellbeing",
+  "prot_concerns.abduction",
+  "prot_concerns.theft",
+  "prot_concerns.explosive_hazards",
+  "prot_concerns.destruction_property",
+  "prot_concerns.early_marriage",
+  "prot_concerns.other",
+  "other_concerns.sgbv",
+  "other_concerns.other",
+  "displ_explosive_presence_na_to_0",
+  "nondispl_explosive_presence_na_to_0",
+  "lcsi_category_class2",
+  "other_impact_class"
+  
+)
+data$prot_all_indictors_score_6 <- comp_score(data, prot_all_indictors_6)
+
+data <- data %>% 
+  mutate(
+    prot_new_indicator_6 = case_when(
+      prot_all_indictors_score_6 >= 1 ~ ">=1",
+      prot_all_indictors_score_6 == 0 ~ "0",
+      TRUE ~ NA_character_
+    )
+  )
+
+
+
+###################################################end
 ### ESNFI ####
 
 # shelter type
@@ -1266,6 +1374,14 @@ data <- data %>%
       female_literacy_yes_no == "0" ~ 1,
       female_literacy_yes_no == "1 or more" ~ 0,
       TRUE ~ 0
+    ),
+    behavior_change_cause_class2 = case_when(
+      behavior_change_cause == "yes" ~ 1,
+      TRUE ~ 0
+    ),
+    child_behavior_change_class2 = case_when(
+      child_behavior_change == "yes" ~ 1,
+      TRUE ~ 0
     )
   )
 
@@ -1364,6 +1480,55 @@ data <- data %>%
     )
   )
 
+
+## Vulnerable_group_7
+
+## vulnerable_group_7
+
+Vulnerable_group_7_vars <- c(
+  "hoh_disabled_vul_class",
+  "hoh_debt_disagg_vul_class",
+  "tazkira_disagg_vul_class",
+  "hoh_age_group_vul_class",
+  "hoh_sex_disagg_vul_class",
+  "behavior_change_cause_class2"
+)
+
+data$Vulnerable_group_7_vars_score <- comp_score(data, Vulnerable_group_7_vars)
+
+
+data <- data %>% 
+  mutate(
+    vulnerable_group_7 = case_when(
+      Vulnerable_group_7_vars_score >= 1 ~ "vulnerable",
+      Vulnerable_group_7_vars_score == 0 ~ "not_vulnerable",
+      TRUE ~ NA_character_
+    )
+  )
+
+
+## vulnerable_group_8
+
+Vulnerable_group_8_vars <- c(
+  "hoh_disabled_vul_class",
+  "hoh_debt_disagg_vul_class",
+  "tazkira_disagg_vul_class",
+  "hoh_age_group_vul_class",
+  "hoh_sex_disagg_vul_class",
+  "child_behavior_change_class2"
+)
+
+data$Vulnerable_group_8_vars_score <- comp_score(data, Vulnerable_group_8_vars)
+
+
+data <- data %>% 
+  mutate(
+    vulnerable_group_8 = case_when(
+      Vulnerable_group_8_vars_score >= 1 ~ "vulnerable",
+      Vulnerable_group_8_vars_score == 0 ~ "not_vulnerable",
+      TRUE ~ NA_character_
+    )
+  )
 
 
 ###############################################end
@@ -1540,7 +1705,7 @@ data <- data %>% filter(uuid %notin% uuid_filter )
 #join main dataset var to hh roster
 data_sub <- data %>% select(final_displacement_status_non_displ, region_disagg, urban_disagg,
                             hoh_sex_disagg, hoh_disabled_disagg, hoh_elderly_disagg,
-                            tazkira_disagg3, hoh_debt_disagg , vulnerable_group_4, uuid)
+                            tazkira_disagg3, hoh_debt_disagg , vulnerable_group_4, registered_dissagg, uuid)
 
 overall_hh_roster <- overall_hh_roster %>%
 mutate(
