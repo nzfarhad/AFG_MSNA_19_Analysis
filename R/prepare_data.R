@@ -580,7 +580,7 @@ data <- data %>%
 ### ESNFI ####
 
 # shelter type
-data$shelter_class<-ifelse(data$shelter == 'open_space',3,ifelse(data$shelter == 'tent' | data$shelter == 'makeshift_shelter' | data$shelter == 'collective_centre' | data$shelter == 'transitional',2,0))
+data$shelter_class<-ifelse(data$shelter == 'open_space'|data$shelter == 'tent' | data$shelter == 'makeshift_shelter' | data$shelter == 'collective_centre' ,3,ifelse(data$shelter == 'transitional',2,ifelse(data$shelter=='permanent'& (data$shelter_hosted_why=='cash_rent'|data$shelter_hosted_why=='trans_shelter_host_family'|data$shelter_hosted_why=='material_tools_extend'),2,0)))
 
 # shelter damage
 data$shelter_damage_class<-ifelse(data$shelter_damage_extent== 'fully_destroyed' & data$shelter_damage_repair == 'no',3,
@@ -595,7 +595,7 @@ data$tenancy_class<-ifelse(data$tenancy == 'unofficial',3,ifelse(data$tenancy ==
 data$tenancy_class[is.na(data$tenancy_class)] <- 0
 
 # blankets
-data$blankets_class<-ifelse(data$blankets_number > data$hh_size,3,0)
+data$blankets_class<-ifelse(data$blankets_number > data$hh_size & (data$energy_source=='wood'|data$energy_source=='paper_waste'),3,0)
 data$blankets_class[is.na(data$blankets_class)] <- 0
 
 # basic needs
@@ -609,18 +609,18 @@ data$hygiene_sanitation <- car::recode(data$hygiene_sanitation, " 'yes' = 1; 'no
 data$basic_needs_total<-coerc(data[["sleeping_mats"]])+coerc(data[["tarpaulin"]])+coerc(data[["cooking_pots"]])+coerc(data[["stainless_steel"]])+coerc(data[["water_storage"]])+coerc(data[["hygiene_sanitation"]])
 
 data$basic_needs_score<-car::recode(data$basic_needs_total,
-                               "0:2=3;
-                               3:5=2;
-                               6=0")  
+                                    "0:3=3;
+                                    4:5=2;
+                                    6=0")  
 
 # ESNFI Severity Score
 data$esnfi_score<-coerc(data[["shelter_class"]])+coerc(data[["shelter_damage_class"]])+coerc(data[["tenancy_class"]])+coerc(data[["blankets_class"]])+coerc(data[["basic_needs_score"]])
 
 data$esnfi_severity<-car::recode(data$esnfi_score,
-                            "0:2='1';
-                            3:6='2';
-                            7:9='3';
-                            10:16='4'") 
+                                 "0:2='1';
+                                 3:6='2';
+                                 7:9='3';
+                                 10:20='4'") 
 
 data$esnfi_sev_high<-ifelse(data$esnfi_severity==3|data$esnfi_severity==4,1,0)
 
@@ -1382,6 +1382,14 @@ data <- data %>%
     child_behavior_change_class2 = case_when(
       child_behavior_change == "yes" ~ 1,
       TRUE ~ 0
+    ),
+    adult_behavior_change_class2 = case_when(
+      adult_behavior_change == "yes" ~ 1,
+      TRUE ~ 0
+    ), 
+    adult_behavior_only_by_conflict = case_when(
+      adult_behavior_change == "yes" & behavior_change_cause == "yes" ~ 1,
+      TRUE  ~ 0
     )
   )
 
@@ -1515,7 +1523,7 @@ Vulnerable_group_8_vars <- c(
   "tazkira_disagg_vul_class",
   "hoh_age_group_vul_class",
   "hoh_sex_disagg_vul_class",
-  "child_behavior_change_class2"
+  "adult_behavior_only_by_conflict"
 )
 
 data$Vulnerable_group_8_vars_score <- comp_score(data, Vulnerable_group_8_vars)
@@ -1705,7 +1713,7 @@ data <- data %>% filter(uuid %notin% uuid_filter )
 #join main dataset var to hh roster
 data_sub <- data %>% select(final_displacement_status_non_displ, region_disagg, urban_disagg,
                             hoh_sex_disagg, hoh_disabled_disagg, hoh_elderly_disagg,
-                            tazkira_disagg3, hoh_debt_disagg , vulnerable_group_4, registered_dissagg, uuid)
+                            tazkira_disagg3, hoh_debt_disagg , vulnerable_group_4, vulnerable_group_7, registered_dissagg, uuid)
 
 overall_hh_roster <- overall_hh_roster %>%
 mutate(
