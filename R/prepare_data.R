@@ -23,11 +23,18 @@ coerc<-function(x){as.numeric(chr(x))}
 # overall_left_roster <- read_excel( master_data, sheet = "MSNA_AFG_19_hh_left_roster" , na = c("","NA"))
 
 
-data <- read.csv("input/data/clean/MSNA_AFG_19_parent_sheet.csv",stringsAsFactors=F,na.strings = c("", "NA"), check.names = F)
-overall_muac_data <- read.csv("input/data/clean/MSNA_AFG_19_muac.csv",stringsAsFactors=F,na.strings = c("", "NA"), check.names = F)
-overall_hh_roster <- read.csv("input/data/clean/MSNA_AFG_19_hh_roster.csv",stringsAsFactors=F,na.strings = c("", "NA"), check.names = F)
-overall_death_roster <- read.csv("input/data/clean/MSNA_AFG_19_hh_death_roster.csv",stringsAsFactors=F,na.strings = c("", "NA"), check.names = F)
-overall_left_roster <- read.csv("input/data/clean/MSNA_AFG_19_hh_left_roster.csv",stringsAsFactors=F,na.strings = c("", "NA"), check.names = F)
+# data <- read.csv("input/data/clean/MSNA_AFG_19_parent_sheet.csv",stringsAsFactors=F,na.strings = c("", "NA"), check.names = F)
+# overall_muac_data <- read.csv("input/data/clean/MSNA_AFG_19_muac.csv",stringsAsFactors=F,na.strings = c("", "NA"), check.names = F)
+# overall_hh_roster <- read.csv("input/data/clean/MSNA_AFG_19_hh_roster.csv",stringsAsFactors=F,na.strings = c("", "NA"), check.names = F)
+# overall_death_roster <- read.csv("input/data/clean/MSNA_AFG_19_hh_death_roster.csv",stringsAsFactors=F,na.strings = c("", "NA"), check.names = F)
+# overall_left_roster <- read.csv("input/data/clean/MSNA_AFG_19_hh_left_roster.csv",stringsAsFactors=F,na.strings = c("", "NA"), check.names = F)
+# 
+
+data <- read.csv("input/data/clean/complete_with_farah/MSNA_AFG_19_parent_sheet.csv",stringsAsFactors=F,na.strings = c("", "NA"), check.names = F)
+overall_muac_data <- read.csv("input/data/clean/complete_with_farah/MSNA_AFG_19_muac.csv",stringsAsFactors=F,na.strings = c("", "NA"), check.names = F)
+overall_hh_roster <- read.csv("input/data/clean/complete_with_farah/MSNA_AFG_19_hh_roster.csv",stringsAsFactors=F,na.strings = c("", "NA"), check.names = F)
+overall_death_roster <- read.csv("input/data/clean/complete_with_farah/MSNA_AFG_19_hh_death_roster.csv",stringsAsFactors=F,na.strings = c("", "NA"), check.names = F)
+overall_left_roster <- read.csv("input/data/clean/complete_with_farah/MSNA_AFG_19_hh_left_roster.csv",stringsAsFactors=F,na.strings = c("", "NA"), check.names = F)
 
 
 
@@ -132,10 +139,8 @@ severe_prot_incidents_vars <-  c(
   "adult_prot_incidents.forcibly_detained",
   "child_prot_incidents.forcibly_detained",
   "adult_prot_incidents.hindered_leave_settlement",
-  "child_prot_incidents.hindered_leave_settlement"
-  )
-
-less_severe_prot_incidents_vars <-c(
+  "child_prot_incidents.hindered_leave_settlement",
+  #### added from less_severe_prot_incidents
   "adult_prot_incidents.verbally_threatened",
   "child_prot_incidents.verbally_threatened",
   "adult_prot_incidents.assaulted_without_weapon",
@@ -144,39 +149,55 @@ less_severe_prot_incidents_vars <-c(
   "child_prot_incidents.hindered_leave_district"
   )
 
+# less_severe_prot_incidents_vars <-c(
+#   "adult_prot_incidents.verbally_threatened",
+#   "child_prot_incidents.verbally_threatened",
+#   "adult_prot_incidents.assaulted_without_weapon",
+#   "child_prot_incidents.assaulted_without_weapon",
+#   "adult_prot_incidents.hindered_leave_district",
+#   "child_prot_incidents.hindered_leave_district"
+#   )
+
 data$severe_prot_incidents <- comp_score(data, severe_prot_incidents_vars)
-data$less_severe_prot_incidents <- comp_score(data, less_severe_prot_incidents_vars)
+# data$less_severe_prot_incidents <- comp_score(data, less_severe_prot_incidents_vars)
 
 # protection concerns
 
 severe_prot_concerns_vars <- c(
   "prot_concerns.violence_maiming",
   "prot_concerns.abduction",
-  "prot_concerns.explosive_hazards"
-  )
-
-less_severe_prot_concerns_vars <- c(
+  "prot_concerns.explosive_hazards",
+  "prot_concerns.psych_wellbeing",
+  # added from less_severe_prot_concern
   "prot_concerns.violence_injuries",
   "prot_concerns.early_marriage",
   "prot_concerns.destruction_property",
-  "prot_concerns.theft",
-  "prot_concerns.psych_wellbeing"
+  "prot_concerns.theft"
   )
 
+# less_severe_prot_concerns_vars <- c(
+#   "prot_concerns.violence_injuries",
+#   "prot_concerns.early_marriage",
+#   "prot_concerns.destruction_property",
+#   "prot_concerns.theft"
+#   )
+
 data$severe_prot_concerns <- comp_score(data, severe_prot_concerns_vars)
-data$less_severe_prot_concerns <- comp_score(data, less_severe_prot_concerns_vars)
+# data$less_severe_prot_concerns <- comp_score(data, less_severe_prot_concerns_vars)
 
 # explosive hazards
 
 severe_explosive_hazards_vars <- c(
   "explosive_impact.injury_death", 
-  "explosive_impact.access_services"
-                                   )
-less_severe_explosive_hazards_vars <- c(
+  "explosive_impact.access_services",
   "explosive_impact.relocation", 
-  "explosive_impact.livelihoods_impact",
+  "explosive_impact.livelihoods_impact", 
   "explosive_impact.psych_impact"
-                                        )
+  )
+less_severe_explosive_hazards_vars <- c(
+  "explosive_impact.restrict_recreation"
+  )
+
 
 data$severe_explosive_hazards <- comp_score(data, severe_explosive_hazards_vars)
 data$less_severe_explosive_hazards <- comp_score(data, less_severe_explosive_hazards_vars)
@@ -189,6 +210,11 @@ tazkira_total_vars <- c(
   "child_tazkira")
 data$tazkira_total <- comp_score(data, tazkira_total_vars)
 
+children_working_yes_no_2 = case_when(
+  data$children_working == 0 ~ "0",
+  data$children_working >= 1 ~ "1 or more",
+  TRUE ~ NA_character_
+)
 # Protection Severity Score
 
 ## Weights
@@ -196,21 +222,21 @@ data <- data %>%
   mutate(
     prot_incident_class = case_when(
       severe_prot_incidents >= 1 ~ 3,
-      severe_prot_incidents == 0 & data$less_severe_prot_incidents >= 1 ~ 2,
+      # severe_prot_incidents == 0 & data$less_severe_prot_incidents >= 1 ~ 2,
       TRUE ~ 0),
     # violence targeting women, girls, boys
     sgbv_incidents_class = case_when(
-      other_incidents.sgbv == 1 ~ 2,
+      other_incidents.sgbv == 1 | other_concerns.sgbv == 1 ~ 2,
       TRUE ~ 0
     ),
     # children working unsafe conditions
     children_work_safety_class = case_when(
-      children_work_safety =='yes' ~ 1,
+      children_working_yes_no_2 =='1 or more' ~ 1,
       TRUE ~ 0
     ),
     prot_concerns_class = case_when(
       severe_prot_concerns >= 1 ~ 3,
-      severe_prot_concerns == 0 & data$less_severe_prot_concerns >= 1 ~ 2,
+      # severe_prot_concerns == 0 & data$less_severe_prot_concerns >= 1 ~ 2,
       TRUE ~ 0
     ),
     # hh members injured conflict or nat disaster
@@ -580,7 +606,7 @@ data <- data %>%
 ### ESNFI ####
 
 # shelter type
-data$shelter_class<-ifelse(data$shelter == 'open_space'|data$shelter == 'tent' | data$shelter == 'makeshift_shelter' | data$shelter == 'collective_centre' ,3,ifelse(data$shelter == 'transitional',2,ifelse(data$shelter=='permanent'& (data$shelter_hosted_why=='cash_rent'|data$shelter_hosted_why=='trans_shelter_host_family'|data$shelter_hosted_why=='material_tools_extend'),2,0)))
+data$shelter_class<-ifelse(data$shelter == 'open_space',3,ifelse(data$shelter == 'tent' | data$shelter == 'makeshift_shelter' | data$shelter == 'collective_centre' | data$shelter == 'transitional',2,0))
 
 # shelter damage
 data$shelter_damage_class<-ifelse(data$shelter_damage_extent== 'fully_destroyed' & data$shelter_damage_repair == 'no',3,
@@ -595,7 +621,7 @@ data$tenancy_class<-ifelse(data$tenancy == 'unofficial',3,ifelse(data$tenancy ==
 data$tenancy_class[is.na(data$tenancy_class)] <- 0
 
 # blankets
-data$blankets_class<-ifelse(data$blankets_number > data$hh_size & (data$energy_source=='wood'|data$energy_source=='paper_waste'),3,0)
+data$blankets_class<-ifelse(data$blankets_number > data$hh_size,3,0)
 data$blankets_class[is.na(data$blankets_class)] <- 0
 
 # basic needs
@@ -609,8 +635,8 @@ data$hygiene_sanitation <- car::recode(data$hygiene_sanitation, " 'yes' = 1; 'no
 data$basic_needs_total<-coerc(data[["sleeping_mats"]])+coerc(data[["tarpaulin"]])+coerc(data[["cooking_pots"]])+coerc(data[["stainless_steel"]])+coerc(data[["water_storage"]])+coerc(data[["hygiene_sanitation"]])
 
 data$basic_needs_score<-car::recode(data$basic_needs_total,
-                                    "0:3=3;
-                                    4:5=2;
+                                    "0:2=3;
+                                    3:5=2;
                                     6=0")  
 
 # ESNFI Severity Score
@@ -618,9 +644,9 @@ data$esnfi_score<-coerc(data[["shelter_class"]])+coerc(data[["shelter_damage_cla
 
 data$esnfi_severity<-car::recode(data$esnfi_score,
                                  "0:2='1';
-                                 3:6='2';
+                                 3:5='2';
                                  7:9='3';
-                                 10:20='4'") 
+                                 10:16='4'") 
 
 data$esnfi_sev_high<-ifelse(data$esnfi_severity==3|data$esnfi_severity==4,1,0)
 
@@ -794,7 +820,6 @@ data$edu_severity<-car::recode(data$edu_score,
 
 data$edu_sev_high<-ifelse(data$edu_severity==3|data$edu_severity==4,1,0)
 
-
 #################################################################
 ### Health ####
 
@@ -827,7 +852,8 @@ data$number_death_under5[is.na(data$number_death_under5)] <- 0
 data$health_barriers_total<-coerc(data[["health_facility_barriers.unsafe"]])+coerc(data[["health_facility_barriers.cost_services"]])+coerc(data[["health_facility_barriers.cost_medicines"]])+coerc(data[["health_facility_barriers.too_far"]])+coerc(data[["health_facility_barriers.documentation_problems"]])+coerc(data[["health_facility_barriers.insufficient_female_staff"]])+coerc(data[["health_facility_barriers.treatment_refused"]])+coerc(data[["health_facility_barriers.other"]])
 data$health_barriers_total[is.na(data$health_barriers_total)] <- 0
 
-data$health_facility_barriers_class<-ifelse(data$health_facility_access == 'no' & data$health_barriers_total>1,3,ifelse(data$health_facility_access == 'no' & data$health_barriers_total==1,2,0))
+# data$health_facility_barriers_class<-ifelse(data$health_facility_access == 'no' & data$health_barriers_total>1,3,ifelse(data$health_facility_access == 'no' & data$health_barriers_total==1,2,0))
+data$health_facility_barriers_class<-ifelse(data$health_facility_access == 'no' ,3,0)
 
 # health facility distance
 data$health_facility_dist_class<-ifelse(data$health_facility_distance == 'none' | data$health_facility_distance=='more_10km',3,ifelse(data$health_facility_distance=='6_10km',2,0))
@@ -840,25 +866,27 @@ data$health_facility_affected_class[is.na(data$health_facility_affected_class)] 
 data$health_priority_need_class<-ifelse(data$priority_needs.healthcare == 1, 3,0)
 
 # behaviour changes as result of conflict
-data$behavior_change_cause_class<-ifelse(data$behavior_change_cause == 'yes', 2,0)
+data$behavior_change_cause_class<-ifelse(data$adult_behavior_change == 'yes'|data$child_behavior_change == 'yes', 3,0)
 data$behavior_change_cause_class[is.na(data$behavior_change_cause_class)] <- 0
 
 # birth location
-data$birth_location_class<-ifelse(data$birth_location == 'home'|data$birth_location == 'midwife_home'|data$birth_location == 'outside'|data$birth_location == 'other',1,0)
-data$birth_location_class[is.na(data$birth_location_class)] <- 0
+# data$birth_location_class<-ifelse(data$birth_location == 'home'|data$birth_location == 'midwife_home'|data$birth_location == 'outside'|data$birth_location == 'other',1,0)
+# data$birth_location_class[is.na(data$birth_location_class)] <- 0
 
 # Health Severity Score
-data$health_score<- coerc(data[["health_facility_barriers_class"]])+coerc(data[["health_facility_dist_class"]])+coerc(data[["health_facility_affected_class"]])+coerc(data[["health_priority_need_class"]])+coerc(data[["behavior_change_cause_class"]])+coerc(data[["birth_location_class"]])
+# data$health_score<- coerc(data[["health_facility_barriers_class"]])+coerc(data[["health_facility_dist_class"]])+coerc(data[["health_facility_affected_class"]])+coerc(data[["health_priority_need_class"]])+coerc(data[["behavior_change_cause_class"]])+coerc(data[["birth_location_class"]])
+data$health_score<- coerc(data[["health_facility_barriers_class"]])+coerc(data[["health_facility_dist_class"]])+coerc(data[["health_facility_affected_class"]])+coerc(data[["health_priority_need_class"]])+coerc(data[["behavior_change_cause_class"]])
 
 data$health_severity<-car::recode(data$health_score,
-                             "0:2='1';
-                             3:5='2';
-                             6:8='3';
-                             9:16='4'")   
+                                  "0:2='1';
+                                  3:5='2';
+                                  6:8='3';
+                                  9:16='4'")   
 
 data$health_sev_high<-ifelse(data$health_severity==3|data$health_severity==4,1,0)
 
 #################################################################
+
 # number sectoral needs ####
 
 data$total_sectoral_needs<-coerc(data[["fsac_sev_high"]])+coerc(data[["prot_sev_high"]])+coerc(data[["esnfi_sev_high"]])+coerc(data[["wash_sev_high"]])+coerc(data[["nut_sev_high"]])+coerc(data[["edu_sev_high"]])+coerc(data[["health_sev_high"]])
@@ -1165,9 +1193,8 @@ data <- data %>%
       TRUE ~ NA_character_
     ),
     rooms_hh_cal = case_when(
-      rooms == 0 ~ 0,
-      rooms > 0 ~    rooms / hh_size,
-      TRUE ~ NA_real_
+      rooms > 0 ~     hh_size / rooms,
+      TRUE ~ 0
     ),
     blankets_people_cal = case_when(
       blankets_number == 0 ~ 0,
@@ -1269,8 +1296,9 @@ data <- data %>%
       TRUE ~ NA_real_
     ),
     child_working_call = case_when(
+      is.na(children_working) ~ 0,
       children_working == 0 ~ 0,
-      children_working > 0 & age_10_17 > 0~ children_working/age_10_17,
+      children_working > 0 & age_10_17 > 0 ~ children_working/age_10_17,
       TRUE ~ NA_real_
     ),
     adult_tazkira_cal = case_when(
@@ -1293,11 +1321,11 @@ data <- data %>%
       adult_tazkira >= 1 | child_tazkira >= 1~ ">=1",
       TRUE ~ NA_character_
     ),
-    child_working_call = case_when(
-      children_working == 0 ~ 0,
-      children_working > 0 ~ children_working/age_10_17,
-      TRUE ~ NA_real_
-    ),
+    # child_working_call = case_when(
+    #   children_working == 0 ~ 0,
+    #   children_working > 0 ~ children_working/age_10_17,
+    #   TRUE ~ NA_real_
+    # ),
     count_current_enrolled_avg = count_current_enrolled / edu_age_boys_girls_num,
     count_current_attending_avg = count_current_attending / edu_age_boys_girls_num
 )
@@ -1730,9 +1758,9 @@ mutate(
 
 
 hh_roster_joined <- koboloops::add_parent_to_loop(overall_hh_roster, data_sub, uuid.name.loop = "_submission__uuid", uuid.name.parent = "uuid")
-write.csv(hh_roster_joined, "./input/data/recoded/hh_roster.csv", row.names = F)
+# write.csv(hh_roster_joined, "./input/data/recoded/hh_roster.csv", row.names = F)
 
 
 
 
-write.csv(data, "./input/data/recoded/data_with_strata.csv", row.names = F)
+write.csv(data, "./input/data/recoded/data_with_strata2.csv", row.names = F)

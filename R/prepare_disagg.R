@@ -28,8 +28,9 @@ data <- data %>%
     # Head of household disability
     hoh_disabled_disagg = case_when(
       wg_walking == "yes" |  wg_selfcare == "yes" ~ "disabled",
-      wg_walking == "no" &  wg_selfcare == "no" ~ "not_disabled",
-      TRUE ~ NA_character_
+      # wg_walking == "no" &  wg_selfcare == "no" ~ "not_disabled",
+      # TRUE ~ NA_character_
+      TRUE ~ "not_disabled"
     ),
     # Urban or Rural
     urban_disagg = urban,
