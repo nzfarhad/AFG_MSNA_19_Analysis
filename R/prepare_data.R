@@ -650,6 +650,37 @@ data$esnfi_severity<-car::recode(data$esnfi_score,
 
 data$esnfi_sev_high<-ifelse(data$esnfi_severity==3|data$esnfi_severity==4,1,0)
 
+###################################################end
+### <3 <3 <3 <3 <3 ESNFI 4 ARI <3 <3 <3 <3 <3 ####
+
+# shelter type
+data$shelter_class_4_ari<-case_when(data$shelter == 'open_space'| data$shelter == 'tent' | data$shelter == 'makeshift_shelter'| data$shelter == 'collective_centre' ~3, data$shelter == 'transitional'~2,
+                              data$shelter=='permanent' & (data$shelter_hosted_why =='cash_rent'| data$shelter_hosted_why =='trans_shelter_host_family'| data$shelter_hosted_why =='materials_tools_extend') ~2, TRUE~  0)
+
+# shelter damage
+data$shelter_damage_class_4_ari<-ifelse(data$shelter_damage_extent== 'fully_destroyed' & data$shelter_damage_repair == 'no',3,
+                                  ifelse(data$shelter_damage_extent== 'significant_damage' & data$shelter_damage_repair == 'no',2,
+                                         ifelse(data$shelter_damage_extent== 'partial_damage' & data$shelter_damage_repair == 'no',1,0)))
+
+data$shelter_damage_class_4_ari[is.na(data$shelter_damage_class_4_ari)] <- 0
+
+# TENENCY AGREEMENT
+data$tenancy_class_4_ari<-ifelse(data$tenancy == 'unofficial',3,ifelse(data$tenancy == 'own_home_without_doc' | data$tenancy == 'rental_verbal' | data$shelter_hosted == 'yes',2,0))
+
+data$tenancy_class_4_ari[is.na(data$tenancy_class_4_ari)] <- 0
+
+
+# ESNFI Severity Score
+data$esnfi_score_4_ari<-coerc(data[["shelter_class_4_ari"]])+coerc(data[["shelter_damage_class_4_ari"]])+coerc(data[["tenancy_class_4_ari"]])
+
+data$esnfi_severity_4_ari<-car::recode(data$esnfi_score_4_ari,
+                                 "0:2='1';
+                                 3:4='2';
+                                 5:6='3';
+                                 7:10='4'") 
+
+data$esnfi_sev_high_4_ari<-ifelse(data$esnfi_severity_4_ari==3|data$esnfi_severity_4_ari==4,1,0)
+
 #################################################################
 
 ### WASH ####
@@ -866,7 +897,8 @@ data$health_facility_affected_class[is.na(data$health_facility_affected_class)] 
 data$health_priority_need_class<-ifelse(data$priority_needs.healthcare == 1, 3,0)
 
 # behaviour changes as result of conflict
-data$behavior_change_cause_class<-ifelse(data$adult_behavior_change == 'yes'|data$child_behavior_change == 'yes', 3,0)
+data$behavior_change_cause_class<-case_when(data$adult_behavior_change == 'yes'& data$behavior_change_cause=='yes'~ 3,
+                                            data$child_behavior_change == 'yes'& data$behavior_change_cause=='yes'~ 3, TRUE~ 0)
 data$behavior_change_cause_class[is.na(data$behavior_change_cause_class)] <- 0
 
 # birth location
