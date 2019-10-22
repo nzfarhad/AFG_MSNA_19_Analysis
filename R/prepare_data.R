@@ -644,7 +644,7 @@ data$esnfi_score<-coerc(data[["shelter_class"]])+coerc(data[["shelter_damage_cla
 
 data$esnfi_severity<-car::recode(data$esnfi_score,
                                  "0:2='1';
-                                 3:5='2';
+                                 3:6='2';
                                  7:9='3';
                                  10:16='4'") 
 
@@ -996,7 +996,6 @@ comp_ind_vars <- c(
   "fsac_sev_high",
   "esnfi_sev_high",
   "wash_sev_high",
-  "nut_sev_high",
   "edu_sev_high",
   "health_sev_high"
 )
