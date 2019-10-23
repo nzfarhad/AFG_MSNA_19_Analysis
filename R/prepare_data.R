@@ -1361,7 +1361,29 @@ data <- data %>%
     count_current_attending_avg = count_current_attending / edu_age_boys_girls_num
 )
 
+# Major events
 
+major_events_vars <- c(
+  "major_events.avalanche",
+  "major_events.conflict",
+  "major_events.drought",
+  "major_events.earthquake",
+  "major_events.floods",
+  "major_events.other"
+)
+
+major_events_score <- (rowSums(data[major_events_vars]))
+
+data <- data %>%
+  mutate(
+    major_events_cal = case_when(
+      major_events_score == 0 ~ "none",
+      major_events_score == 1 ~ "1",
+      major_events_score == 2 ~ "2",
+      major_events_score >= 3 ~ ">= 3",
+      TRUE ~ NA_character_
+    )
+  )
 
 
 #Recoding new variables
@@ -1777,19 +1799,40 @@ data_sub <- data %>% select(final_displacement_status_non_displ, region_disagg, 
 overall_hh_roster <- overall_hh_roster %>%
 mutate(
   school_age = case_when(
-    hh_member_age >=6 & hh_member_age <= 18 ~ "school age",
-    TRUE ~ "not school age"
+    hh_member_age >=6 & hh_member_age <= 18 ~ "school_age",
+    TRUE ~ "not_school_age"
   ),
   current_year_attending_na_no = case_when(
     current_year_attending == "no" ~ "no",
     current_year_attending == "yes" ~ "yes",
-    TRUE & school_age == "school age" ~ "no"
+    TRUE & school_age == "school_age" ~ "no"
+  ),
+  edu_removal_shock.no_sch_age = case_when(
+    edu_removal_shock.no == 1 ~ 1,
+    TRUE & school_age == "school_age" ~ 0
+  ),
+  edu_removal_shock.conflict_sch_age = case_when(
+    edu_removal_shock.conflict == 1 ~ 1, 
+    TRUE & school_age == "school_age" ~ 0
+  ),
+  edu_removal_shock.displacement_sch_age = case_when(
+    edu_removal_shock.displacement == 1 ~ 1,
+    TRUE & school_age == "school_age" ~ 0
+  ),
+  edu_removal_shock.natural_disaster_sch_age = case_when(
+    edu_removal_shock.natural_disaster == 1 ~ 1,
+    TRUE & school_age == "school_age" ~ 0
+  ),
+  edu_removal_shock_sch_age = case_when(
+    edu_removal_shock.no == 1 ~ "yes",
+    TRUE & school_age == "school_age" ~ "no"
   )
 )
 
 
+
 hh_roster_joined <- koboloops::add_parent_to_loop(overall_hh_roster, data_sub, uuid.name.loop = "_submission__uuid", uuid.name.parent = "uuid")
-# write.csv(hh_roster_joined, "./input/data/recoded/hh_roster.csv", row.names = F)
+write.csv(hh_roster_joined, "./input/data/recoded/hh_roster.csv", row.names = F)
 
 
 
