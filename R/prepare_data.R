@@ -774,8 +774,8 @@ data$nut_severity<-car::recode(data$nut_score,
 
 
 
-
-data$nut_sev_high<-ifelse(data$nut_severity==3|data$nut_severity==4,1,0)
+# data$nut_sev_high<-ifelse(data$nut_severity==3|data$nut_severity==4,1,0)
+data$nut_sev_high<-ifelse(data$nut_severity==3|data$nut_severity==4 | data$nut_severity==2   ,1,0)
 
 #################################################################
 
@@ -801,8 +801,8 @@ education_analysis_hh<-education_analysis %>%
   group_by(`_submission__uuid`) %>% 
   summarize(count_school_child=sum(total_schoolage_child),
             count_enrolled_attending=sum(enrolled_and_attending),
-            count_current_enrolled = sum(enrolled_1),
-            count_current_attending = sum(attending_1),
+            count_current_enrolled = sum(enrolled_1, na.rm = T),
+            count_current_attending = sum(attending_1, na.rm = T),
             count_shock=sum(shock_presence))
 
 # shock weight
@@ -1000,6 +1000,19 @@ comp_ind_vars <- c(
   "health_sev_high"
 )
 data$comp_ind_sev <- comp_score(data, comp_ind_vars)
+
+
+comp_ind_vars_nut <- c(
+  "prot_sev_high",
+  "fsac_sev_high",
+  "esnfi_sev_high",
+  "wash_sev_high",
+  "edu_sev_high",
+  "health_sev_high",
+  "nut_sev_high"
+)
+data$comp_ind_sev_nut <- comp_score(data, comp_ind_vars_nut)
+
 
 
 ## Age categories
@@ -1288,6 +1301,17 @@ data <- data %>%
       comp_ind_sev <2 ~ "<2",
       TRUE ~ NA_character_
     ),
+    comp_ind_sev_2_nut_call = case_when(
+      comp_ind_sev_nut >= 2 ~ ">=2",
+      comp_ind_sev_nut <2 ~ "<2",
+      TRUE ~ NA_character_
+    ),
+    
+    comp_ind_sev_3_call = case_when(
+      comp_ind_sev >= 3 ~ ">=3",
+      comp_ind_sev < 3 ~ "<3",
+      TRUE ~ NA_character_
+    ),
     dep_ratio_call =  case_when(
       age_0_14 == 0 & age_65 == 0 ~ 0,
       (age_0_14 > 0 | age_65 > 0) ~ 
@@ -1382,6 +1406,90 @@ data <- data %>%
       major_events_score == 2 ~ "2",
       major_events_score >= 3 ~ ">= 3",
       TRUE ~ NA_character_
+    )
+  )
+
+
+
+# hno_intersectoral analysis
+data <- data %>%
+  mutate(
+    # GBV incident OR threat
+    gbv_incidents_threats = case_when(
+      other_incidents == "sgbv" | other_concerns == "sgbv" ~ ">=1",
+      (other_incidents == "no" | other_incidents == "other") & 
+        (other_concerns == "no" | other_concerns == "other") ~ "0",
+      TRUE ~ NA_character_
+      ),
+    # At least one protection incident for adult OR child
+    prot_incident_adult_child = case_when(
+      adult_prot_incidents != "none" | child_prot_incidents != "none" ~ ">=1",
+      adult_prot_incidents == "none" & child_prot_incidents == "none" ~ "0",
+      TRUE ~ NA_character_
+    ),
+    # Total income per day per household member in USD
+    daily_income_hh_members = case_when(
+      (((total_income / 30) / hh_size) / 78.36) > 1.90 ~ 1,
+      (((total_income / 30) / hh_size) / 78.36) <= 1.90 ~ 0,
+      TRUE ~ NA_real_
+    ),
+    # health
+    health_service_access_class = case_when(
+      health_facility_access == "no" ~ 1,
+      health_facility_access == "yes" ~ 0,
+      TRUE ~ NA_real_
+    ),
+    
+    #ESNFI
+    shelter_type_access_class = case_when(
+      shelter == "tent" | shelter == "makeshift_shelter" | 
+        shelter == "collective_centre" | shelter == "open_space" ~ 1,
+      shelter == "transitional" | shelter == "permanent" ~ 0,
+      TRUE ~ NA_real_
+    ),
+    
+    #EiE
+    hh_level_school_attendance_class = case_when(
+      count_current_attending > 0 ~ 1,
+      TRUE ~ 0
+    ),
+    
+    #FSA No data for Farah paper interviews
+    market_service_access_class = case_when(
+      market_access == "no" ~ 1,
+      market_access == "yes" ~ 0,
+      TRUE ~ NA_real_
+    ),
+    
+    #protection
+    identity_ownership_class = case_when(
+      child_tazkira == 0 & adult_tazkira == 0 ~ 1,
+      child_tazkira >=1 | adult_tazkira >=1 ~ 0,
+      TRUE ~ NA_real_
+    ),
+    
+    #WASH
+    access_to_water_class = case_when(
+      water_source == "handpump_private" | water_source == "handpump_public" | 
+        water_source == "piped_public" | water_source == "spring_protected" ~ 1,
+      water_source == "spring_unprotected" | water_source == "surface_water" | 
+        water_source == "water_trucking" | water_source == "other" ~ 0,
+      TRUE ~ NA_real_
+    )
+    
+  )
+
+access_services_vars <- c("health_service_access_class", "shelter_type_access_class", 
+                          "hh_level_school_attendance_class", "market_service_access_class", 
+                          "identity_ownership_class","access_to_water_class") 
+
+data$services_score <- comp_score(data, access_services_vars)
+
+data <- data %>% 
+  mutate(
+    comp_ind_access_services = case_when(
+      services_score <= 2 ~ 0,
+      services_score >= 3 ~ 1
     )
   )
 
@@ -1780,6 +1888,15 @@ data <- data %>%
   )
 ################################################end
 
+#################### dip push factors ############
+# 
+# data <- data %>%
+#   mutate(
+#     idp_push_factors
+#   )
+
+
+#################################################
 data <- data %>% filter(!is.na(province))
 
 # fliter prolematic feilds
@@ -1793,8 +1910,11 @@ data <- data %>% filter(uuid %notin% uuid_filter )
 
 #join main dataset var to hh roster
 data_sub <- data %>% select(final_displacement_status_non_displ, region_disagg, urban_disagg,
-                            hoh_sex_disagg, hoh_disabled_disagg, hoh_elderly_disagg,
-                            tazkira_disagg3, hoh_debt_disagg , vulnerable_group_4, vulnerable_group_7, registered_dissagg, uuid)
+                            hoh_sex_disagg, hoh_disabled_disagg, hoh_chronic_illness_disagg, hoh_elderly_disagg,
+                            displacements_disagg, literate_adult_disagg, lcsi_disagg, host_disagg, disp_length_disagg, hoh_sex2_disagg,
+                            behav_change_disagg, child_behav_change_disagg,
+                            tazkira_disagg3, hoh_debt_disagg , vulnerable_group_4, vulnerable_group_7, registered_dissagg,
+                            uuid)
 
 overall_hh_roster <- overall_hh_roster %>%
 mutate(
@@ -1826,11 +1946,83 @@ mutate(
   edu_removal_shock_sch_age = case_when(
     edu_removal_shock.no == 1 ~ "yes",
     TRUE & school_age == "school_age" ~ "no"
+  ),
+  hh_member_age_cat = case_when(
+    hh_member_age >= 0 & hh_member_age < 6 ~ "0_5",
+    hh_member_age > 5 & hh_member_age < 19 ~ "6_18",
+    hh_member_age > 18 & hh_member_age < 60 ~ "19_59",
+    hh_member_age > 59 ~ "60+"
+  ),
+  # demographic hh roster data
+  hh_member_age_cat_gender = case_when(
+    hh_member_age >= 0 & hh_member_age < 6 & hh_member_sex == "female" ~ "female_0_5",
+    hh_member_age >= 0 & hh_member_age < 6 & hh_member_sex == "male" ~ "male_0_5",
+    hh_member_age > 5 & hh_member_age < 19 & hh_member_sex == "female" ~ "female_6_18",
+    hh_member_age > 5 & hh_member_age < 19 & hh_member_sex == "male" ~ "male_6_18",
+    hh_member_age > 18 & hh_member_age < 60 & hh_member_sex == "female" ~ "female_19_59",
+    hh_member_age > 18 & hh_member_age < 60 & hh_member_sex == "male" ~ "male_19_59",
+    hh_member_age > 59 & hh_member_sex == "female" ~ "female_60+",
+    hh_member_age > 59 & hh_member_sex == "male" ~ "male_60+"
+  ),
+  male_female_perc = case_when(
+    hh_member_sex == "female" ~ "female",
+    hh_member_sex == "male" ~ "male"
   )
+  
 )
+############## demographic hoh data #####################
+hoh_data <- data %>%
+  select(
+    hh_member_sex = hoh_sex,
+    hh_member_age = hoh_age,
+    `_submission__uuid` = uuid,
+    province,
+    survey_village) %>%
+  mutate(
+    hh_member_age_cat_gender = case_when(
+      hh_member_age >= 0 & hh_member_age < 6 & hh_member_sex == "female" ~ "female_0_5",
+      hh_member_age >= 0 & hh_member_age < 6 & hh_member_sex == "male" ~ "male_0_5",
+      hh_member_age > 5 & hh_member_age < 19 & hh_member_sex == "female" ~ "female_6_18",
+      hh_member_age > 5 & hh_member_age < 19 & hh_member_sex == "male" ~ "male_6_18",
+      hh_member_age > 18 & hh_member_age < 60 & hh_member_sex == "female" ~ "female_19_59",
+      hh_member_age > 18 & hh_member_age < 60 & hh_member_sex == "male" ~ "male_19_59",
+      hh_member_age > 59 & hh_member_sex == "female" ~ "female_60+",
+      hh_member_age > 59 & hh_member_sex == "male" ~ "male_60+"
+    ),
+    male_female_perc = case_when(
+      hh_member_sex == "female" ~ "female",
+      hh_member_sex == "male" ~ "male"
+    )
+  )
+hoh_data <- hoh_data %>%
+  select(
+    hh_member_sex,
+    hh_member_age,
+    hh_member_age_cat_gender,
+    male_female_perc,
+    province,
+    survey_village,
+    `_submission__uuid`
+  )
 
+roster_data <- overall_hh_roster %>%
+  select(
+    hh_member_sex,
+    hh_member_age,
+    hh_member_age_cat_gender,
+    male_female_perc,
+    province,
+    survey_village,
+    `_submission__uuid`
+  )
 
+combined_hoh_and_roster <- rbind(roster_data, hoh_data)
 
+# for demographic
+combined_hoh_and_roster_joined <- koboloops::add_parent_to_loop(combined_hoh_and_roster, data_sub, uuid.name.loop = "_submission__uuid", uuid.name.parent = "uuid")
+write.csv(combined_hoh_and_roster_joined, "./input/data/recoded/hh_roster_hoh_demographic.csv", row.names = F)
+
+# for education questions
 hh_roster_joined <- koboloops::add_parent_to_loop(overall_hh_roster, data_sub, uuid.name.loop = "_submission__uuid", uuid.name.parent = "uuid")
 write.csv(hh_roster_joined, "./input/data/recoded/hh_roster.csv", row.names = F)
 
