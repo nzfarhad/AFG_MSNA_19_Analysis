@@ -994,7 +994,6 @@ food_water_rent_vars <- c(
 data$food_water_rent_num <- comp_score(data, food_water_rent_vars)
 
 
-
 all_expenses_vars <- c(
   "food_exp",
   "water_expt",
@@ -1553,6 +1552,75 @@ data$schoo_age_boys_girls <- coerc(data$boys_ed) + coerc(data$girls_ed)
 
 ## source disaggs
 source("r/prepare_disagg.R")
+
+
+################ MEB analysis ###########################################################
+
+# sustainable income vars
+sustainable_income_vars <- c(
+  'ag_income',
+  'livestock_income',
+  'rent_income',
+  'small_business_income',
+  'unskill_labor_income',
+  'skill_labor_income',
+  'formal_employment_income',
+  'gov_benefits_income'
+)
+
+# sustainable income per HH
+data$sustainable_income <- comp_score(data, sustainable_income_vars)
+
+# sustainable income per HH member
+data$sustainable_income_per_mem <- data$sustainable_income / data$hh_size
+
+# net inocome per hh
+data$net_income <- data$sustainable_income - data$all_expenses
+
+# total Exp per hh memeber
+data$total_exp_per_mem <- data$all_expenses / data$hh_size
+
+data <- data %>% 
+  mutate(
+    food_exp_per_mem = food_exp / hh_size,
+    water_expt_per_mem = water_expt / hh_size,
+    rent_exp_per_mem = rent_exp / hh_size,
+    fuel_exp_per_mem = fuel_exp / hh_size,
+    debt_exp_per_mem = debt_exp / hh_size, 
+    
+    food_exp_spent = case_when(
+      food_exp > 0 ~ 1,
+      food_exp == 0 ~ 0,
+      TRUE ~ NA_real_
+    ),
+    water_expt_spent = case_when(
+      water_expt > 0 ~ 1,
+      water_expt == 0 ~ 0,
+      TRUE ~ NA_real_
+    ),
+    rent_exp_spent = case_when(
+      rent_exp > 0 ~ 1,
+      rent_exp == 0 ~ 0,
+      TRUE ~ NA_real_
+    ),
+    fuel_exp_spent = case_when(
+      fuel_exp > 0 ~ 1,
+      fuel_exp == 0 ~ 0,
+      TRUE ~ NA_real_
+    ),
+    debt_exp_spent = case_when(
+      debt_exp > 0 ~ 1,
+      debt_exp == 0 ~ 0,
+      TRUE ~ NA_real_
+    )
+  )
+
+
+########################################################################################
+
+
+
+
 ############################# Vulnerablity composites ###################################
 
 data <- data %>% 
