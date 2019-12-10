@@ -57,6 +57,12 @@ data <- data %>%
       debt == "no" ~ "no_debt",
       TRUE ~ NA_character_
     ),
+    # hh debt yes/no disagg
+    hoh_debt_yes_no_disagg = case_when(
+      debt_amount > 0 ~ "yes",
+      debt == "no" ~ "no",
+      TRUE ~ NA_character_
+    ),
     # Tazkira # removed some_have as per gss 20190921
     tazkira_disagg = case_when(
       child_tazkira == 0 & adult_tazkira == 0 ~ "non_have_tazkira",
@@ -145,5 +151,21 @@ data <- data %>%
       child_behavior_change == "no" ~ "no",
       child_behavior_change == "no_answer" ~ "no",
       TRUE ~ NA_character_
+    ),
+    # Child Tazkira disagg
+    child_tazkira_disagg = case_when(
+      child_tazkira >= 1 ~ 1,
+      child_tazkira == 0 ~ 0,
+      TRUE ~ NA_real_
+    ),
+    emergency_shelter_disagg = case_when(
+      shelter == "tent" | shelter == "makeshift_shelter" ~ "emergency_shelter",
+      shelter == "transitional" | shelter == "permanent" | shelter == "collective_centre" | shelter == "open_space" ~ "improved_shelter",
+      TRUE ~ NA_character_
     )
 )
+
+
+
+
+
