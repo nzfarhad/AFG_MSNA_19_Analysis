@@ -787,8 +787,7 @@ education_analysis<-overall_hh_roster %>%
 education_analysis$enrolled_and_attending<-ifelse(education_analysis$current_year_enrolled=='no',0,
                                                   ifelse(education_analysis$current_year_enrolled=='yes' & education_analysis$current_year_attending=='no',0,1))
 
-education_analysis$enrolled_1 <- if_else(education_analysis$current_year_enrolled=='no',0,1)
-education_analysis$attending_1 <- if_else(education_analysis$current_year_attending=='no',0,1)
+
 
 education_analysis$total_schoolage_child<-1  
 
@@ -796,14 +795,57 @@ education_analysis$total_schoolage_child<-1
 education_analysis$shock_presence<-coerc(education_analysis[["edu_removal_shock.displacement"]])+coerc(education_analysis[["edu_removal_shock.conflict"]])+coerc(education_analysis[["edu_removal_shock.natural_disaster"]])
 education_analysis$shock_presence[is.na(education_analysis$shock_presence)] <- 0
 
+################## not part of composite #################################################
+education_analysis$enrolled_1 <- if_else(education_analysis$current_year_enrolled=='no',0,1)
+education_analysis$attending_1 <- if_else(education_analysis$current_year_attending=='no',0,1)
+
+
+education_analysis <- education_analysis %>% 
+  mutate(
+    attending_male = case_when(
+      current_year_attending == "yes" & hh_member_sex == "male" ~ 1, 
+      TRUE ~ 0 
+    ),
+    attending_female = case_when(
+      current_year_attending == "yes" & hh_member_sex == "female" ~ 1, 
+      TRUE ~ 0 
+    ),
+    enrolled_male = case_when(
+      current_year_enrolled == "yes" & hh_member_sex == "male" ~ 1, 
+      TRUE ~ 0 
+    ),
+    enrolled_female = case_when(
+      current_year_enrolled == "yes" & hh_member_sex == "female" ~ 1, 
+      TRUE ~ 0 
+    ),
+    shock_presence_male = case_when(
+      shock_presence > 0  & hh_member_sex == "male" ~ 1, 
+      TRUE ~ 0
+    ),
+    shock_presence_female = case_when(
+      shock_presence > 0  & hh_member_sex == "female" ~ 1, 
+      TRUE ~ 0
+    )
+  )
+
+####################################################################################
+
+
 # group dataset into hh
 education_analysis_hh<-education_analysis %>% 
   group_by(`_submission__uuid`) %>% 
   summarize(count_school_child=sum(total_schoolage_child),
             count_enrolled_attending=sum(enrolled_and_attending),
             count_current_enrolled = sum(enrolled_1, na.rm = T),
+            count_current_enrolled_male = sum(enrolled_male, na.rm = T),
+            count_current_enrolled_female = sum(enrolled_female, na.rm = T),
             count_current_attending = sum(attending_1, na.rm = T),
-            count_shock=sum(shock_presence))
+            count_current_attending_male = sum(attending_male, na.rm = T),
+            count_current_attending_female = sum(attending_female, na.rm = T),
+            count_shock=sum(shock_presence), 
+            count_shock_male = sum(shock_presence_male, na.rm = T),
+            count_shock_female = sum(shock_presence_female, na.rm = T)
+            )
 
 # shock weight
 education_analysis_hh$shock_class<-ifelse(education_analysis_hh$count_shock >= 1, 5,0)
@@ -1376,6 +1418,11 @@ data <- data %>%
       adult_tazkira >= 1 | child_tazkira >= 1~ ">=1",
       TRUE ~ NA_character_
     ),
+    insuf_blank_energy = case_when(
+      blankets_suff_cal == "<1" & energy_source == "wood" | energy_source == "paper_waste" | energy_source == "animal_waste" ~ "yes",
+      TRUE ~ "no"
+    ),
+    
     # child_working_call = case_when(
     #   children_working == 0 ~ 0,
     #   children_working > 0 ~ children_working/age_10_17,
@@ -1502,7 +1549,7 @@ data$recent_non_recent <- ifelse(data$final_displacement_status_non_displ == "re
                                  ifelse(data$final_displacement_status_non_displ == "non_recent_idps", "non_recent_idps", NA ))
 data$edu_removal_shock_cal <-  ifelse(data$shock_class == 5, "Yes", "No") 
 data$enrolled_attending <- ifelse(data$count_enrolled_attending > 0, "Enrolled_and_Attending", "Not" ) 
-
+data$schoo_age_boys_girls <- coerc(data$boys_ed) + coerc(data$girls_ed)
 
 ## source disaggs
 source("r/prepare_disagg.R")
@@ -1801,6 +1848,11 @@ data <- data %>%
       diarrhea_cases >= 1 ~ 1,
       diarrhea_cases == 0 ~ 0,
       TRUE ~ 0
+    ),
+    diarrhea_cases_class_children = case_when(
+      diarrhea_cases >= 1 ~ 1,
+      diarrhea_cases == 0 ~ 0,
+      TRUE ~ NA_real_
     )
   )
 
@@ -1889,12 +1941,49 @@ data <- data %>%
 ################################################end
 
 #################### dip push factors ############
-# 
-# data <- data %>%
-#   mutate(
-#     idp_push_factors
-#   )
 
+ipd_push_factors_vars <- c(
+'idp_push_factors.active_conflict',
+'idp_push_factors.anticipated_conflict',
+'idp_push_factors.earthquake',
+'idp_push_factors.floods',
+'idp_push_factors.avalanche',
+'idp_push_factors.drought',
+'idp_push_factors.poverty',
+'idp_push_factors.service_access',
+'idp_push_factors.other'
+)
+
+ipd_push_factors_vars_short <- c(
+  'idp_push_factors.active_conflict',
+  'idp_push_factors.anticipated_conflict',
+  'idp_push_factors.earthquake',
+  'idp_push_factors.floods',
+  'idp_push_factors.avalanche',
+  'idp_push_factors.drought'
+)
+
+
+data$ipd_push_factors_vars_score <- comp_score(data, ipd_push_factors_vars)
+data$ipd_push_factors_vars_score_short <- comp_score(data, ipd_push_factors_vars_short)
+
+data <- data %>% 
+  mutate(
+    idp_push_factors_cat = case_when(
+      ipd_push_factors_vars_score == 1 ~ "1_event",
+      ipd_push_factors_vars_score < 3 ~ "2_events",
+      ipd_push_factors_vars_score >=3 ~ "3_or_more_events",
+      TRUE ~ NA_character_
+    ),
+    
+    idp_push_factors_cat_short = case_when(
+      ipd_push_factors_vars_score_short == 1 ~ "1_event",
+      ipd_push_factors_vars_score_short < 3 ~ "2_events",
+      ipd_push_factors_vars_score_short >=3 ~ "3_or_more_events",
+      TRUE ~ NA_character_
+    )
+    
+  )
 
 #################################################
 data <- data %>% filter(!is.na(province))
@@ -1913,8 +2002,8 @@ data_sub <- data %>% select(final_displacement_status_non_displ, region_disagg, 
                             hoh_sex_disagg, hoh_disabled_disagg, hoh_chronic_illness_disagg, hoh_elderly_disagg,
                             displacements_disagg, literate_adult_disagg, lcsi_disagg, host_disagg, disp_length_disagg, hoh_sex2_disagg,
                             behav_change_disagg, child_behav_change_disagg,
-                            tazkira_disagg3, hoh_debt_disagg , vulnerable_group_4, vulnerable_group_7, registered_dissagg,
-                            uuid)
+                            tazkira_disagg3, hoh_debt_disagg , vulnerable_group_4, vulnerable_group_7, registered_dissagg, informal_settlement,
+                            child_tazkira_disagg, uuid)
 
 overall_hh_roster <- overall_hh_roster %>%
 mutate(
@@ -1963,10 +2052,20 @@ mutate(
     hh_member_age > 18 & hh_member_age < 60 & hh_member_sex == "male" ~ "male_19_59",
     hh_member_age > 59 & hh_member_sex == "female" ~ "female_60+",
     hh_member_age > 59 & hh_member_sex == "male" ~ "male_60+"
+    
   ),
   male_female_perc = case_when(
     hh_member_sex == "female" ~ "female",
     hh_member_sex == "male" ~ "male"
+  ),
+  ## request # 30
+  school_age_cat_gender = case_when(
+    
+    hh_member_age > 5 & hh_member_age < 13 & hh_member_sex == "female" ~ "female_6_12",
+    hh_member_age > 12 & hh_member_age < 19 & hh_member_sex == "female" ~ "female_13_18",
+    hh_member_age > 5 & hh_member_age < 13 & hh_member_sex == "male" ~ "male_6_12",
+    hh_member_age > 12 & hh_member_age < 19 & hh_member_sex == "male" ~ "male_13_18",
+    TRUE ~ NA_character_
   )
   
 )
@@ -1992,6 +2091,14 @@ hoh_data <- data %>%
     male_female_perc = case_when(
       hh_member_sex == "female" ~ "female",
       hh_member_sex == "male" ~ "male"
+    ),
+    school_age_cat_gender = case_when(
+      
+      hh_member_age > 5 & hh_member_age < 13 & hh_member_sex == "female" ~ "female_6_12",
+      hh_member_age > 12 & hh_member_age < 19 & hh_member_sex == "female" ~ "female_13_18",
+      hh_member_age > 5 & hh_member_age < 13 & hh_member_sex == "male" ~ "male_6_12",
+      hh_member_age > 12 & hh_member_age < 19 & hh_member_sex == "male" ~ "male_13_18",
+      TRUE ~ NA_character_
     )
   )
 hoh_data <- hoh_data %>%
@@ -2000,6 +2107,7 @@ hoh_data <- hoh_data %>%
     hh_member_age,
     hh_member_age_cat_gender,
     male_female_perc,
+    school_age_cat_gender,
     province,
     survey_village,
     `_submission__uuid`
@@ -2011,6 +2119,7 @@ roster_data <- overall_hh_roster %>%
     hh_member_age,
     hh_member_age_cat_gender,
     male_female_perc,
+    school_age_cat_gender,
     province,
     survey_village,
     `_submission__uuid`
@@ -2021,6 +2130,8 @@ combined_hoh_and_roster <- rbind(roster_data, hoh_data)
 # for demographic
 combined_hoh_and_roster_joined <- koboloops::add_parent_to_loop(combined_hoh_and_roster, data_sub, uuid.name.loop = "_submission__uuid", uuid.name.parent = "uuid")
 write.csv(combined_hoh_and_roster_joined, "./input/data/recoded/hh_roster_hoh_demographic.csv", row.names = F)
+
+
 
 # for education questions
 hh_roster_joined <- koboloops::add_parent_to_loop(overall_hh_roster, data_sub, uuid.name.loop = "_submission__uuid", uuid.name.parent = "uuid")
