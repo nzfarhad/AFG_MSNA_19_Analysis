@@ -1421,6 +1421,13 @@ data <- data %>%
       blankets_suff_cal == "<1" & energy_source == "wood" | energy_source == "paper_waste" | energy_source == "animal_waste" ~ "yes",
       TRUE ~ "no"
     ),
+    current_presence_mines = case_when(
+      displ_explosive_presence == "both" | displ_explosive_presence == "current" |
+        nondispl_explosive_presence == "yes" ~ "current_explosive_presence",
+      displ_explosive_presence == "previous" | displ_explosive_presence == "no" |
+        nondispl_explosive_presence == "no" ~ "no_explosive_presence", 
+      TRUE ~ NA_character_
+    ),
     
     # child_working_call = case_when(
     #   children_working == 0 ~ 0,
@@ -2053,6 +2060,442 @@ data <- data %>%
     
   )
 
+
+##################### MSNI #######################
+
+#### IMPACT 
+
+data <- data %>% 
+  mutate(
+    major_events_impc = case_when(
+      major_events_cal == ">= 3" | major_events_cal == "2" ~ 2,
+      major_events_cal == "1" ~ 1, 
+      TRUE ~ 0
+    ),
+    agricultural_impact_how_impc = case_when(
+      agricultural_impact_how == "51_75" | agricultural_impact_how == "76_100" ~ 1,
+      TRUE ~ 0
+    ), 
+    livestock_impact_how_impc = case_when(
+      livestock_impact_how.livestock_died == 1 ~ 1,
+      livestock_impact_how.left_unattended == 1 ~ 1,
+      TRUE ~ 0
+    ),
+    explosive_impact_death_impc = case_when(
+      explosive_impact.injury_death == 1 ~ 2,
+      TRUE ~ 0
+    ),
+    explosive_impact_others_impc = case_when(
+      explosive_impact.psych_impact == 1 | explosive_impact.relocation == 1 |
+        explosive_impact.access_services == 1 | explosive_impact.restrict_recreation == 1 |
+        explosive_impact.livelihoods_impact == 1 | explosive_impact.other == 1 &
+        explosive_impact.injury_death != 1 ~ 1,
+      TRUE ~ 0
+    ),
+    adult_injuries_cause_impc = case_when(
+      adult_injuries_cause == "conflict" | adult_injuries_cause == "natural_disaster" |
+        child_injuries_cause == "conflict" | child_injuries_cause == "natural_disaster" ~ 2,
+      TRUE ~ 0
+    ),
+    shelter_damage_impc = case_when(
+      shelter_damage == "due_to_conflict" | shelter_damage == "due_to_natural_disaster" ~ 1,
+      TRUE ~ 0 
+    ),
+    edu_removal_shock_impc = case_when(
+      count_shock >= 1 ~ 1,
+      TRUE ~ 0
+    ),
+    health_facility_reopened_impc = case_when(
+      health_facility_reopened == "remain_closed" ~ 1,
+      TRUE ~ 0
+    ),
+    water_damaged_cause_impc = case_when(
+      water_damaged_cause == "conflict" | water_damaged_cause == "natural_disaster" |
+        water_damaged_cause == "drought" ~ 2,
+      TRUE ~ 0
+    ),
+    aid_access_issue_2_impc = case_when(
+      aid_access_issue == "yes" & aid_access_issue_type == "insecurity" |
+        aid_access_issue_type == "explosive_hazards" ~ 2,
+      TRUE ~ 0
+    ),
+    aid_access_issue_1_impc = case_when(
+      aid_access_issue == "yes" & aid_access_issue_type == "distance" |
+        aid_access_issue_type == "social_restrictions" ~ 1,
+      TRUE ~ 0 
+    )
+  )
+
+# impact class vars
+msni_impact_score_vars <- c(
+  "major_events_impc",
+  "agricultural_impact_how_impc",
+  "livestock_impact_how_impc",
+  "explosive_impact_death_impc",
+  "explosive_impact_others_impc",
+  "adult_injuries_cause_impc",
+  "shelter_damage_impc",
+  "edu_removal_shock_impc",
+  "health_facility_reopened_impc",
+  "water_damaged_cause_impc",
+  "aid_access_issue_2_impc",
+  "aid_access_issue_1_impc"
+)
+
+# impact score
+data$msni_impact_score <- comp_score(data, msni_impact_score_vars)
+
+# impact severity
+data <- data %>% 
+  mutate(
+    impact = case_when(
+      msni_impact_score < 3 ~ 1,
+      msni_impact_score > 2 & msni_impact_score < 6 ~ 2,
+      msni_impact_score > 5 & msni_impact_score < 9 ~ 3,
+      msni_impact_score >= 9 ~ 4,
+      TRUE ~ 0
+    )
+  )
+
+
+#### End IMPACT 
+
+
+#### Capacity gaps
+
+data <- data %>% 
+  mutate(
+    capacity_gaps = case_when(
+      lcsi_severity == "minimal" ~ 1,
+      lcsi_severity == "stress" ~ 2,
+      lcsi_severity == "severe" ~ 3,
+      lcsi_severity == "extreme" ~ 4,
+      TRUE ~ NA_real_
+    )
+  )
+
+#### End Capacity gaps
+
+
+# HC-LSG/ESNFI - shelter_lsg
+
+
+data <- data %>% 
+  mutate(
+    shelter_type_lsg = case_when(
+      shelter == "open_space" ~ 3,
+      shelter == "tent" | shelter == "makeshift_shelter" | shelter == "collective_centre" ~ 2,
+      TRUE ~ 0
+    ),
+    shelter_damage_lsg = case_when(
+      shelter_damage_extent == "fully_destroyed" & shelter_damage_repair == "no" ~ 3,
+      shelter_damage_extent == "significant_damage" & shelter_damage_repair == "no" ~ 2,
+      TRUE ~ 0
+    ),
+    winterisation_lsg = case_when(
+      blankets_suff_cal == "<1" & (energy_source == "animal_waste" | energy_source == "paper_waste" | 
+        energy_source == "wood") ~ 3,
+      TRUE ~ 0
+    ),
+    access_nfi_lsg = case_when(
+      priority_nfi_num < 3 ~ 3,
+      priority_nfi_num > 2 & priority_nfi_num < 6 ~ 2,
+      TRUE ~ 0
+    )
+  )
+
+
+# shelter_lsg class vars
+msni_shelter_lsg_vars <- c(
+  "shelter_type_lsg",
+  "shelter_damage_lsg",
+  "winterisation_lsg",
+  "access_nfi_lsg"
+)
+
+# shelter_lsg score
+data$msni_shelter_lsg_score <- comp_score(data, msni_shelter_lsg_vars)
+
+# shelter_lsg severity
+data <- data %>% 
+  mutate(
+    shelter_lsg = case_when(
+      msni_shelter_lsg_score < 3 ~ 1,
+      msni_shelter_lsg_score > 2 & msni_shelter_lsg_score < 6 ~ 2,
+      msni_shelter_lsg_score > 5 & msni_shelter_lsg_score < 9 ~ 3,
+      msni_shelter_lsg_score >= 9 ~ 4
+    )
+  )
+#### end shelter_lsg
+
+
+# HC-LSG/FSA - fsl_lsg
+
+data <- data %>% 
+  mutate(
+    fcs_lsg = case_when(
+      fcs_category == "poor" ~ 3,
+      fcs_category == "borderline" ~ 1.5,
+      TRUE ~ 0
+    ),
+    hhs_lsg = case_when(
+      hhs_category == "severe_hunger" ~ 3,
+      hhs_category == "moderate_hunger" ~ 1.5,
+      TRUE ~ 0
+    ),
+    food_source_lsg = case_when(
+      food_source == "assistance" | food_source == "gift" ~ 3,
+      food_source == "borrowed" ~ 2,
+      TRUE ~ 0
+    ),
+    market_access_lsg = case_when(
+      market_access == "no" ~ 3,
+      TRUE ~ 0
+    )
+  )
+
+# fsl_lsg class vars
+msni_fsl_lsg_vars <- c(
+  "fcs_lsg",
+  "hhs_lsg",
+  "food_source_lsg",
+  "market_access_lsg"
+)
+
+# fsl_lsg score
+data$msni_fsl_lsg_score <- comp_score(data, msni_fsl_lsg_vars)
+
+# fsl_lsg severity
+data <- data %>% 
+  mutate(
+    fsl_lsg = case_when(
+      msni_fsl_lsg_score < 3 ~ 1,
+      msni_fsl_lsg_score > 2 & msni_fsl_lsg_score < 6 ~ 2,
+      msni_fsl_lsg_score > 5 & msni_fsl_lsg_score < 9 ~ 3,
+      msni_fsl_lsg_score >= 9 ~ 4
+    )
+  )
+  
+#### end fsl_lsg
+
+
+# HC-LSG/Health - health_lsg
+
+data <- data %>% 
+  mutate(
+    access_health_center_lsg = case_when(
+      health_facility_access == "no" ~ 3,
+      TRUE ~ 0
+    ),
+    health_facility_distance_lsg = case_when(
+      health_facility_distance == "none" | health_facility_distance == "more_10km" ~ 3,
+      health_facility_distance == "6_10km" ~ 2,
+      TRUE ~ 0
+    ),
+    behav_change_lsg = case_when(
+      behav_change_disagg == "yes" ~ 3,
+      TRUE ~ 0
+    ),
+    birth_location_lsg = case_when(
+      birth_location == "outside" ~ 3,
+      birth_location == "home" | birth_location == "midwife_home" | birth_location == "other" ~ 2,
+      TRUE ~ 0
+    )
+  )
+
+# health_lsg class vars
+msni_health_lsg_vars <- c(
+  "access_health_center_lsg",
+  "health_facility_distance_lsg",
+  "behav_change_lsg",
+  "birth_location_lsg"
+)
+
+# health_lsg score
+data$msni_health_lsg_score <- comp_score(data, msni_health_lsg_vars)
+
+# health_lsg severity
+data <- data %>% 
+  mutate(
+    health_lsg = case_when(
+      msni_health_lsg_score < 3 ~ 1,
+      msni_health_lsg_score > 2 & msni_health_lsg_score < 6 ~ 2,
+      msni_health_lsg_score > 5 & msni_health_lsg_score < 9 ~ 3,
+      msni_health_lsg_score >= 9 ~ 4
+    )
+  )
+
+#### end health_lsg
+
+
+# HC-LSG/Protection - protection_lsg
+
+data <- data %>% 
+  mutate(
+    prot_incidents_4_lsg = case_when(
+      adult_prot_incidents.assaulted_with_weapon == 1 | adult_prot_incidents.hindered_leave_settlement == 1 |
+        adult_prot_incidents.forced_work == 1 | adult_prot_incidents.forcibly_detained == 1 |
+        child_prot_incidents.assaulted_with_weapon == 1 | child_prot_incidents.hindered_leave_settlement == 1 |
+        child_prot_incidents.forced_work == 1 | child_prot_incidents.forcibly_detained == 1 ~ 4,
+      TRUE ~ 0
+    ),
+    prot_incidents_3_lsg = case_when(
+      adult_prot_incidents.verbally_threatened == 1 | adult_prot_incidents.assaulted_without_weapon == 1 |
+        adult_prot_incidents.hindered_leave_district == 1 | child_prot_incidents.verbally_threatened == 1 |
+        child_prot_incidents.assaulted_without_weapon == 1 | child_prot_incidents.hindered_leave_district == 1 &
+           (adult_prot_incidents.assaulted_with_weapon == 0 | adult_prot_incidents.hindered_leave_settlement == 0 |
+            adult_prot_incidents.forced_work == 0 | adult_prot_incidents.forcibly_detained == 0 |
+            child_prot_incidents.assaulted_with_weapon == 0 | child_prot_incidents.hindered_leave_settlement == 0 |
+            child_prot_incidents.forced_work == 0 | child_prot_incidents.forcibly_detained == 0) ~ 3,
+      TRUE ~ 0
+    ),
+    other_incidents_lsg = case_when(
+      other_incidents == "sgbv" | other_concerns == "sgbv" | boy_marriage == "yes" | girl_marriage == "yes" ~ 3,
+      TRUE ~ 0
+    ),
+    prot_concerns_lsg = case_when(
+      prot_concerns.violence_maiming == 1 | prot_concerns.violence_injuries == 1 | prot_concerns.psych_wellbeing == 1 |
+        prot_concerns.abduction == 1 | prot_concerns.theft == 1 | prot_concerns.explosive_hazards == 1 |
+        prot_concerns.destruction_property == 1 | prot_concerns.early_marriage == 1 | prot_concerns.other == 1 ~ 3,
+      TRUE ~ 0
+    ),
+    safety_lsg = case_when(
+      safety == "poor" | safety == "very_poor" ~ 2,
+      TRUE ~ 0
+    )
+  )
+
+# protection_lsg class vars
+msni_protection_lsg_vars <- c(
+  "prot_incidents_4_lsg",
+  "prot_incidents_3_lsg",
+  "other_incidents_lsg",
+  "prot_concerns_lsg",
+  "safety_lsg"
+)
+
+# protection_lsg score
+data$msni_protection_lsg_score <- comp_score(data, msni_protection_lsg_vars)
+
+# protection_lsg severity
+data <- data %>% 
+  mutate(
+    protection_lsg = case_when(
+      msni_protection_lsg_score < 3 ~ 1,
+      msni_protection_lsg_score > 2 & msni_protection_lsg_score < 6 ~ 2,
+      msni_protection_lsg_score > 5 & msni_protection_lsg_score < 9 ~ 3,
+      msni_protection_lsg_score >= 9 ~ 4
+    )
+  )
+
+#### end protection_lsg
+
+
+# HC-LSG/WASH wash_lsg
+
+data <- data %>% 
+  mutate(
+    water_source_lsg = case_when(
+      water_source == "surface_water" ~ 3,
+      water_source == "water_trucking" | water_source == "spring_unprotected" ~ 2, 
+      TRUE ~ 0
+    ),
+    soap_lsg = case_when(
+      soap == "no" ~ 3,
+      TRUE ~ 0
+    ),
+    latrine_lsg = case_when(
+      latrine == "open" | latrine == "public_latrine" ~ 3,
+      latrine == "pit_latrine_uncovered" ~ 2,
+      TRUE ~ 0
+    ),
+    water_distance_lsg = case_when(
+      water_distance == "over_1km" ~ 3,
+      water_distance == "500m_to_1km" ~ 2,
+      TRUE ~ 0
+    )
+  )
+
+# wash_lsg class vars
+msni_wash_lsg_vars <- c(
+  "water_source_lsg",
+  "soap_lsg",
+  "latrine_lsg",
+  "water_distance_lsg"
+)
+
+# wash_lsg score
+data$msni_wash_lsg_score <- comp_score(data, msni_wash_lsg_vars)
+
+# wash_lsg severity
+data <- data %>% 
+  mutate(
+    wash_lsg = case_when(
+      msni_wash_lsg_score < 3 ~ 1,
+      msni_wash_lsg_score > 2 & msni_wash_lsg_score < 6 ~ 2,
+      msni_wash_lsg_score > 5 & msni_wash_lsg_score < 9 ~ 3,
+      msni_wash_lsg_score >= 9 ~ 4
+    )
+  )
+
+#### end wash_lsg
+
+
+# HC-LSG/EiE - education_lsg
+
+data <- data %>% 
+  mutate(
+    not_attending_lsg = case_when(
+    (percent_enrolled >= 0.75 & percent_enrolled <= 1) |  unattending_total > 2 ~ 6,
+    percent_enrolled >= 0.5 & percent_enrolled <= 0.749 ~ 5,
+    percent_enrolled >= 0.25 & percent_enrolled <= 0.449 ~ 4,
+    percent_enrolled >= 0 & percent_enrolled <= 0.249 ~ 3,
+    TRUE ~ 0
+    ),
+    unattending_security_lsg = case_when(
+      boy_unattendance_reason.insecurity == 1 | boy_unattendance_reason.child_works_instead == 1 |
+        girl_unattendance_reason.insecurity == 1 | girl_unattendance_reason.child_works_instead == 1 ~ 3,
+      TRUE ~ 0
+    ),
+    unattending_cultural_lsg = case_when(
+      boy_unattendance_reason.cultural_reasons == 1 | girl_unattendance_reason == 1 |
+        boy_unattendance_reason.lack_facilities == 1 | girl_unattendance_reason.lack_facilities == 1 ~ 2,
+      TRUE ~ 0
+    ),
+    unattending_finance_doc_lsg = case_when(
+      boy_unattendance_reason.lack_documentation == 1 | boy_unattendance_reason.too_expensive == 1 |
+        boy_unattendance_reason.lack_teachers == 1 | girl_unattendance_reason.lack_documentation ==1 |
+        girl_unattendance_reason.too_expensive == 1 | girl_unattendance_reason.lack_teachers == 1 ~ 1,
+      TRUE ~ 0
+    )
+  )
+
+
+# education_lsg class vars
+msni_education_lsg_vars <- c(
+  "not_attending_lsg",
+  "unattending_security_lsg",
+  "unattending_cultural_lsg",
+  "unattending_finance_doc_lsg"
+)
+
+# education_lsg score
+data$msni_education_lsg_score <- comp_score(data, msni_education_lsg_vars)
+
+# education_lsg severity
+data <- data %>% 
+  mutate(
+    education_lsg = case_when(
+      msni_education_lsg_score < 3 ~ 1,
+      msni_education_lsg_score > 2 & msni_education_lsg_score < 6 ~ 2,
+      msni_education_lsg_score > 5 & msni_education_lsg_score < 9 ~ 3,
+      msni_education_lsg_score >= 9 ~ 4
+    )
+  )
+
+#### end education_lsg
+
+
 #################################################
 data <- data %>% filter(!is.na(province))
 
@@ -2197,6 +2640,16 @@ combined_hoh_and_roster <- rbind(roster_data, hoh_data)
 
 # for demographic
 combined_hoh_and_roster_joined <- koboloops::add_parent_to_loop(combined_hoh_and_roster, data_sub, uuid.name.loop = "_submission__uuid", uuid.name.parent = "uuid")
+combined_hoh_and_roster_joined <- combined_hoh_and_roster_joined %>% 
+  mutate(
+    hh_member_under_over_15 = case_when(
+      hh_member_age <= 15 ~ "15_and_under",
+      hh_member_age > 15 ~ "over_15",
+      TRUE ~ NA_character_
+    )
+  )
+
+
 write.csv(combined_hoh_and_roster_joined, "./input/data/recoded/hh_roster_hoh_demographic.csv", row.names = F)
 
 
