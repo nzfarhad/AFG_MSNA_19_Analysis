@@ -57,6 +57,11 @@ data <- data %>%
       debt == "no" ~ "no_debt",
       TRUE ~ NA_character_
     ),
+    hh_debt_disagg2 = case_when(
+      debt_amount >= 50000 ~ "high",
+      debt_amount < 50000 | debt == "no" ~ "low_or_none",
+      TRUE ~ NA_character_
+    ),
     # hh debt yes/no disagg
     hoh_debt_yes_no_disagg = case_when(
       debt_amount > 0 ~ "yes",
@@ -162,7 +167,28 @@ data <- data %>%
       shelter == "tent" | shelter == "makeshift_shelter" ~ "emergency_shelter",
       shelter == "transitional" | shelter == "permanent" | shelter == "collective_centre" | shelter == "open_space" ~ "improved_shelter",
       TRUE ~ NA_character_
+    ),
+    support_to_return_disagg = case_when(
+      return_aoo_needs.none == 1 ~ "never_intend_to_return",
+      return_aoo_needs.increased_safety == 1 | return_aoo_needs.financial_means == 1 | return_aoo_needs.ability_harvest == 1 |
+        return_aoo_needs.functioning_markets == 1 | return_aoo_needs.better_livelihoods == 1 | 
+        return_aoo_needs.home_rehabilitation == 1 | return_aoo_needs.better_services == 1 |
+        return_aoo_needs.other == 1 ~ "support_to_return",
+      TRUE ~ NA_character_
+    ),
+    winterisation_disagg = case_when(
+      blankets_suff_cal == "<1" & (energy_source == "animal_waste" | energy_source == "paper_waste" | energy_source == "wood") ~ "winterization_needs",
+      blankets_suff_cal == "<1" & (energy_source == "charcoal" | energy_source == "coal" | energy_source == "lpg" | energy_source == "other" |
+                                     energy_source == "electricity" ) ~ "no_needs",
+      blankets_suff_cal == "1+" & (energy_source != "animal_waste" | energy_source != "paper_waste" | energy_source != "wood") ~ "no_needs",
+      TRUE ~ NA_character_
+    ),
+    sectoral_need_disagg = case_when(
+      total_sectoral_needs == 0 ~ "no_need",
+      total_sectoral_needs > 0 ~ "at_least_1",
+      TRUE ~ NA_character_
     )
+    
 )
 
 
