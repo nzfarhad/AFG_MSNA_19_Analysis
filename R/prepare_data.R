@@ -1623,6 +1623,41 @@ data <- data %>%
   )
 
 
+# sustainable income 2 vars
+sustainable_income_2_vars <- c(
+  'ag_income',
+  'livestock_income',
+  'rent_income',
+  'small_business_income',
+  'unskill_labor_income',
+  'skill_labor_income',
+  'formal_employment_income'
+)
+
+# sustainable income per HH
+data$sustainable_income_2 <- comp_score(data, sustainable_income_2_vars)
+
+# sustainable income per HH member
+data$sustainable_income_2_per_mem <- data$sustainable_income_2 / data$hh_size
+
+# unskilled_labor_income per hh member
+data$unskill_labor_income_per_mem <- data$unskill_labor_income / data$hh_size
+
+
+# unskilled + agriculture + livestock income  vars
+unskill_ag_live_income_vars <- c(
+  'ag_income',
+  'livestock_income',
+  'unskill_labor_income'
+)
+
+# unskilled + agriculture + livestock income 
+data$unskill_ag_live_income_income <- comp_score(data, unskill_ag_live_income_vars)
+
+# unskilled + agriculture + livestock income per HH member
+data$unskill_ag_live_income_income_per_mem <- data$unskill_ag_live_income_income / data$hh_size
+
+
 ########################################################################################
 
 
@@ -2068,12 +2103,13 @@ data <- data %>%
 data <- data %>% 
   mutate(
     major_events_impc = case_when(
-      major_events_cal == ">= 3" | major_events_cal == "2" ~ 2,
+      major_events_cal == ">= 3" | major_events_cal == "2" ~ 3,
       major_events_cal == "1" ~ 1, 
       TRUE ~ 0
     ),
     agricultural_impact_how_impc = case_when(
-      agricultural_impact_how == "51_75" | agricultural_impact_how == "76_100" ~ 1,
+      agricultural_impact_how == "51_75" ~ 1,
+      agricultural_impact_how == "76_100" ~ 2,
       TRUE ~ 0
     ), 
     livestock_impact_how_impc = case_when(
@@ -2082,23 +2118,23 @@ data <- data %>%
       TRUE ~ 0
     ),
     explosive_impact_death_impc = case_when(
-      explosive_impact.injury_death == 1 ~ 2,
+      explosive_impact.injury_death == 1 ~ 3,
       TRUE ~ 0
     ),
     explosive_impact_others_impc = case_when(
       explosive_impact.psych_impact == 1 | explosive_impact.relocation == 1 |
         explosive_impact.access_services == 1 | explosive_impact.restrict_recreation == 1 |
         explosive_impact.livelihoods_impact == 1 | explosive_impact.other == 1 &
-        explosive_impact.injury_death != 1 ~ 1,
+        explosive_impact.injury_death != 1 ~ 2,
       TRUE ~ 0
     ),
     adult_injuries_cause_impc = case_when(
       adult_injuries_cause == "conflict" | adult_injuries_cause == "natural_disaster" |
-        child_injuries_cause == "conflict" | child_injuries_cause == "natural_disaster" ~ 2,
+        child_injuries_cause == "conflict" | child_injuries_cause == "natural_disaster" ~ 3,
       TRUE ~ 0
     ),
     shelter_damage_impc = case_when(
-      shelter_damage == "due_to_conflict" | shelter_damage == "due_to_natural_disaster" ~ 1,
+      shelter_damage == "due_to_conflict" | shelter_damage == "due_to_natural_disaster" ~ 2,
       TRUE ~ 0 
     ),
     edu_removal_shock_impc = case_when(
@@ -2185,6 +2221,7 @@ data <- data %>%
     shelter_type_lsg = case_when(
       shelter == "open_space" ~ 3,
       shelter == "tent" | shelter == "makeshift_shelter" | shelter == "collective_centre" ~ 2,
+      # shelter == "transitional" ~ 1,
       TRUE ~ 0
     ),
     shelter_damage_lsg = case_when(
@@ -2235,21 +2272,25 @@ data <- data %>%
   mutate(
     fcs_lsg = case_when(
       fcs_category == "poor" ~ 3,
-      fcs_category == "borderline" ~ 1.5,
+      fcs_category == "borderline" ~ 2,
       TRUE ~ 0
     ),
     hhs_lsg = case_when(
       hhs_category == "severe_hunger" ~ 3,
-      hhs_category == "moderate_hunger" ~ 1.5,
+      hhs_category == "moderate_hunger" ~ 2,
       TRUE ~ 0
     ),
     food_source_lsg = case_when(
-      food_source == "assistance" | food_source == "gift" ~ 3,
-      food_source == "borrowed" ~ 2,
+      food_source == "assistance" | food_source == "gift" | food_source == "borrowed" ~ 3,
+      # food_source == "borrowed" ~ 2,
       TRUE ~ 0
     ),
     market_access_lsg = case_when(
       market_access == "no" ~ 3,
+      TRUE ~ 0
+    ),
+    market_distance_lsg = case_when(
+      market_distance == "6_10km" ~ 2,
       TRUE ~ 0
     )
   )
@@ -2259,7 +2300,8 @@ msni_fsl_lsg_vars <- c(
   "fcs_lsg",
   "hhs_lsg",
   "food_source_lsg",
-  "market_access_lsg"
+  "market_access_lsg",
+  "market_distance_lsg"
 )
 
 # fsl_lsg score
@@ -2297,7 +2339,7 @@ data <- data %>%
       TRUE ~ 0
     ),
     birth_location_lsg = case_when(
-      birth_location == "outside" ~ 3,
+      birth_location == "outside" | diarrhea_cases_class == 1 ~ 3,
       birth_location == "home" | birth_location == "midwife_home" | birth_location == "other" ~ 2,
       TRUE ~ 0
     )
@@ -2405,8 +2447,8 @@ data <- data %>%
       TRUE ~ 0
     ),
     latrine_lsg = case_when(
-      latrine == "open" | latrine == "public_latrine" ~ 3,
-      latrine == "pit_latrine_uncovered" ~ 2,
+      latrine == "open" | latrine == "public_latrine" | waste_disposal == "open_space" ~ 3,
+      latrine == "pit_latrine_uncovered" | waste_disposal == "burning" ~ 2,
       TRUE ~ 0
     ),
     water_distance_lsg = case_when(
@@ -2446,11 +2488,16 @@ data <- data %>%
 data <- data %>% 
   mutate(
     not_attending_lsg = case_when(
-    (percent_enrolled >= 0.75 & percent_enrolled <= 1) |  unattending_total > 2 ~ 6,
-    percent_enrolled >= 0.5 & percent_enrolled <= 0.749 ~ 5,
-    percent_enrolled >= 0.25 & percent_enrolled <= 0.449 ~ 4,
-    percent_enrolled >= 0 & percent_enrolled <= 0.249 ~ 3,
+    percent_enrolled >= 0.75 & percent_enrolled <= 1 ~ 4,
+    percent_enrolled >= 0.5 & percent_enrolled <= 0.749 ~ 3,
+    percent_enrolled >= 0.25 & percent_enrolled <= 0.449 ~ 2,
+    percent_enrolled >= 0 & percent_enrolled <= 0.249 ~ 1,
     TRUE ~ 0
+    ),
+    education_level_lsg = case_when(
+      highest_edu == "none" ~ 2,
+      highest_edu == "primary" ~ 1,
+      TRUE ~ 0
     ),
     unattending_security_lsg = case_when(
       boy_unattendance_reason.insecurity == 1 | boy_unattendance_reason.child_works_instead == 1 |
@@ -2476,7 +2523,8 @@ msni_education_lsg_vars <- c(
   "not_attending_lsg",
   "unattending_security_lsg",
   "unattending_cultural_lsg",
-  "unattending_finance_doc_lsg"
+  "unattending_finance_doc_lsg",
+  "education_level_lsg"
 )
 
 # education_lsg score
