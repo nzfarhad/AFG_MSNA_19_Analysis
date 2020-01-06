@@ -8,7 +8,7 @@
 
 # setup analysis environment
 source("./R/source.R")
-
+library(msni19)
 # character operation
 ch<-as.character
 chr<-as.character
@@ -2543,7 +2543,6 @@ data <- data %>%
 
 #### end education_lsg
 
-
 #################################################
 data <- data %>% filter(!is.na(province))
 
@@ -2555,6 +2554,18 @@ uuid_filter <- c("ac3e8430-ba88-497b-9895-c1bd8da7f79e",
 
 `%notin%` <- Negate(`%in%`)
 data <- data %>% filter(uuid %notin% uuid_filter )
+
+
+# MSNI Indicator
+data$msni <- msni(education_lsg = data$education_lsg,
+                  fsl_lsg = data$fsl_lsg,
+                  health_lsg = data$health_lsg,
+                  protection_lsg = data$protection_lsg,
+                  shelter_lsg = data$shelter_lsg,
+                  wash_lsg = data$wash_lsg, 
+                  capacity_gaps = data$capacity_gaps,
+                  impact = data$impact)
+
 
 #join main dataset var to hh roster
 data_sub <- data %>% select(final_displacement_status_non_displ, region_disagg, urban_disagg,
