@@ -1,9 +1,7 @@
-# setup
 
 library(tidyverse)
 library(koboquest) # manage kobo questionnairs
 library(kobostandards) # check inputs for inconsistencies
-# library(xlsformfill) # generate fake data for kobo
 library(hypegrammaR) # stats 4 complex samples
 library(composr) # horziontal operations
 library(lubridate)
@@ -23,29 +21,25 @@ choices <- read.csv("input/questionnaire/questionnaire_choices.csv",
 
 ####### load sampling frame
 # samplingframe <- load_samplingframe("input/sampling_frames/sampling_frame_pop_group.csv")
-# samplingframe <- load_samplingframe("input/sampling_frames/sampling_frame_overall.csv")
-samplingframe <- load_samplingframe("input/sampling_frames/sampling_frame_vulnerabilty.csv")
+samplingframe <- load_samplingframe("input/sampling_frames/sampling_frame_overall.csv")
+# samplingframe <- load_samplingframe("input/sampling_frames/sampling_frame_idp.csv")
+# samplingframe <- load_samplingframe("input/sampling_frames/sampling_frame_vulnerabilty.csv")
+# samplingframe <- load_samplingframe("input/sampling_frames/sampling_frame_prot_pop_group.csv")
+# samplingframe <- load_samplingframe("input/sampling_frames/sampling_frame_vulnerabilty_2_host_non_recent_ipd_returnee.csv")
+# samplingframe <- load_samplingframe("input/sampling_frames/sampling_frame_displaced_non_displaced.csv")
+# samplingframe <- load_samplingframe("input/sampling_frames/sampling_frame_non_displaced_only.csv")
+
+
 
 # load analysis plan
-analysisplan <- load_analysisplan(file = "./input/analysisplans/analysisplan_wash_incator_2.csv")
+analysisplan <- load_analysisplan(file = "./input/analysisplans/final_analysis/analysisplan_request_44.csv")
 
 
 # Load recoded clean data
-response <- read.csv("./input/data/recoded/data_with_strata.csv") %>%
+response <- read.csv("./input/data/recoded/data_with_strata2.csv") %>%
   mutate(strata = stringr::str_c(final_displacement_status_non_displ, "_", province),
          cluster_id = str_c(final_displacement_status_non_displ, "_", province, "_", survey_village)) %>%
   filter(strata %in% samplingframe$strata)
-
-# only for nutrition composite indicator
-# remove_pro <- c("uruzgan", "laghman",
-#                 "kunduz","kabul",
-#                 "baghlan")
-# `%notin%` <- Negate(`%in%`)
-# response <- response %>% filter(province %notin% remove_pro )
-# 
-# enum_muac_not <- c("ohw-zabul-12", "ohw-kandahar-1")
-# response <- response %>% filter(enumerator_uuid %notin% enum_muac_not)
-#####################################################################
 
 # check inputs
 # kobostandards::check_input(data = response, questions = questions, choices = choices ,samplingframe = samplingframe,
@@ -66,6 +60,7 @@ questionnaire <- load_questionnaire(data = response,
 
 
 
+
 # wieghts
 strata_weight_fun <- map_to_weighting(sampling.frame = samplingframe,
                  sampling.frame.population.column = "population",
@@ -74,8 +69,8 @@ strata_weight_fun <- map_to_weighting(sampling.frame = samplingframe,
                  data = response)
 
 
+
 response$general_weights <- strata_weight_fun(response)
-# write.csv(response, "hh_roster_with_weights.csv", row.names = F)
 
 
 results <- from_analysisplan_map_to_output(response, analysisplan = analysisplan,
@@ -86,36 +81,35 @@ results <- from_analysisplan_map_to_output(response, analysisplan = analysisplan
 
 ### results output
 labeled_results <- lapply(results$results, map_to_labeled,questionnaire)
-map_to_master_table(results_object =labeled_results, filename = "./output/results_wash_incator_2_trsh_2.csv")
+map_to_master_table(results_object =labeled_results, filename = "./output/final_results/results_request_44_05012019_winterisation.csv")
 
 
-# pop_group_pivot <- response %>% group_by(final_displacement_status_non_displ) %>% tally()
-# write.csv(table(response$final_displacement_status_non_displ), "hhs_included_in_analysis.csv", row.names = F)
-# write.csv(pop_group_pivot, "pop_groups_by_displacement_by_province.csv", row.names = F)
+pop_group_pivot <- response %>% group_by(final_displacement_status_non_displ) %>% tally()
+
 
 
 big_table <- results$results %>% lapply(function(x) x[["summary.statistic"]]) %>% do.call(rbind, .)
 write.csv(big_table,"./output/results_prot_new_indicator_short_names.csv")
 
-# datamerge <- dmerge(results$results)
-# write.csv(datamerge, "./output/results/fsa_datamerge_overall_and_disagg.csv", row.names = F)
+
 
 # not sure if this function should be "user facing" or have some wrappers (@Bouke thoughts?)
 # essentially it handles all the looping over different column values as hierarchies.
 # then each result is visualised by a function passed here that decides how to render each individual result
 # see ?hypegrammaR:::map_to_generic_hierarchical_html
-hypegrammaR:::map_to_generic_hierarchical_html(results,
-                                               render_result_with = hypegrammaR:::from_result_map_to_md_table,
-                                               by_analysisplan_columns = c("dependent.var","repeat.var.value"),
-                                               by_prefix =  c("",""),
-                                               level = 2,
-                                               questionnaire = questionnaire,
-                                               label_varnames = TRUE,
-                                               dir = "./output",
-                                               filename = "rresults_prot_new_indicator_4_vulnerability_disagg.html")
 
-
-browseURL("./output/rresults_prot_new_indicator_4_vulnerability_disagg.html")
+# hypegrammaR:::map_to_generic_hierarchical_html(results,
+#                                                render_result_with = hypegrammaR:::from_result_map_to_md_table,
+#                                                by_analysisplan_columns = c("dependent.var","repeat.var.value"),
+#                                                by_prefix =  c("",""),
+#                                                level = 2,
+#                                                questionnaire = questionnaire,
+#                                                label_varnames = TRUE,
+#                                                dir = "./output",
+#                                                filename = "rresults_prot_new_indicator_4_vulnerability_disagg.html")
+# 
+# 
+# browseURL("./output/rresults_prot_new_indicator_4_vulnerability_disagg.html")
 
 
 
