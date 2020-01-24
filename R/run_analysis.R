@@ -19,20 +19,23 @@ questions <- read.csv("input/questionnaire/questionnaire_questions.csv",
 choices <- read.csv("input/questionnaire/questionnaire_choices.csv", 
                     stringsAsFactors=F, check.names = F)
 
-####### load sampling frame
+
+#######  sampling frame entire population
 # samplingframe <- load_samplingframe("input/sampling_frames/sampling_frame_pop_group.csv")
-samplingframe <- load_samplingframe("input/sampling_frames/sampling_frame_overall.csv")
-# samplingframe <- load_samplingframe("input/sampling_frames/sampling_frame_idp.csv")
-# samplingframe <- load_samplingframe("input/sampling_frames/sampling_frame_vulnerabilty.csv")
-# samplingframe <- load_samplingframe("input/sampling_frames/sampling_frame_prot_pop_group.csv")
-# samplingframe <- load_samplingframe("input/sampling_frames/sampling_frame_vulnerabilty_2_host_non_recent_ipd_returnee.csv")
-# samplingframe <- load_samplingframe("input/sampling_frames/sampling_frame_displaced_non_displaced.csv")
+
+# Displaced only
+# samplingframe <- load_samplingframe("input/sampling_frames/sampling_frame_overall.csv")
+
+# Shock affected
+samplingframe <- load_samplingframe("input/sampling_frames/sampling_frame_displaced_non_displaced.csv")
+
+# none-displaced
 # samplingframe <- load_samplingframe("input/sampling_frames/sampling_frame_non_displaced_only.csv")
 
 
 
 # load analysis plan
-analysisplan <- load_analysisplan(file = "./input/analysisplans/final_analysis/analysisplan_request_44.csv")
+analysisplan <- load_analysisplan(file = "./input/analysisplans/final_analysis/analysisplan_msni_drivers_all_population.csv")
 
 
 # Load recoded clean data
@@ -81,10 +84,10 @@ results <- from_analysisplan_map_to_output(response, analysisplan = analysisplan
 
 ### results output
 labeled_results <- lapply(results$results, map_to_labeled,questionnaire)
-map_to_master_table(results_object =labeled_results, filename = "./output/final_results/results_request_44_05012019_winterisation.csv")
+map_to_master_table(results_object =labeled_results, filename = "./output/final_results/results_analysisplan_msni_drivers_all_population.csv")
 
 
-pop_group_pivot <- response %>% group_by(final_displacement_status_non_displ) %>% tally()
+# pop_group_pivot <- response %>% group_by(final_displacement_status_non_displ) %>% tally()
 
 
 
