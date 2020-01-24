@@ -1055,29 +1055,140 @@ comp_ind_vars_nut <- c(
 data$comp_ind_sev_nut <- comp_score(data, comp_ind_vars_nut)
 
 
+## Age categories hh
 
-## Age categories
+data <- data %>% 
+  mutate(
+    age_0_4_hh = case_when(
+      hoh_age <=4 ~ 1,
+      TRUE ~ 0
+    ),
+    age_0_17_hh = case_when(
+      hoh_age <=17 ~ 1,
+      TRUE ~ 0
+    ) ,
+    age_0_14_hh = case_when(
+      hoh_age <=14 ~ 1,
+      TRUE ~ 0
+    ) ,
+    age_10_17_hh = case_when(
+      hoh_age >= 10 & hoh_age <=17 ~ 1,
+      TRUE ~ 0
+    ) ,
+    age_15_64_hh = case_when(
+      hoh_age >= 14 & hoh_age <=64 ~ 1,
+      TRUE ~ 0
+    )  ,
+    age_18_59_hh = case_when(
+      hoh_age >= 18 & hoh_age <=59 ~ 1,
+      TRUE ~ 0
+    ) ,
+    age_18_64_hh = case_when(
+      hoh_age >= 18 & hoh_age <=64 ~ 1,
+      TRUE ~ 0
+    ) ,
+    age_60_and_more_hh = case_when(
+      hoh_age >= 60 ~ 1,
+      TRUE ~ 0
+    ) ,
+    age_65_hh = case_when(
+      hoh_age >= 65 ~ 1,
+      TRUE ~ 0
+    ) ,
+    testt = case_when(
+      hoh_age < 120 ~ 1, 
+      TRUE ~ 0
+    )
+  )
+
+## Age categories roster
 
 hh_group <- overall_hh_roster %>% 
   mutate(
     age_0_4 =  hh_member_age <=4,
+    age_0_17 =  hh_member_age <=17,
     age_0_14 =  hh_member_age <=14,
     age_10_17 =  hh_member_age >= 10 & hh_member_age <=17,
     age_15_64 =  hh_member_age >= 14 & hh_member_age <=64,
+    age_18_59 = hh_member_age >= 18 & hh_member_age <=59,
     age_18_64 =  hh_member_age >= 18 & hh_member_age <=64,
+    age_60_and_more = hh_member_age >= 60,
     age_65 =  hh_member_age >= 65
   ) %>% 
   group_by(`_submission__uuid`) %>% 
   summarise(
     age_0_4 = sum(age_0_4, na.rm = TRUE),
+    age_0_17 = sum(age_0_17, na.rm = TRUE),
     age_0_14 = sum(age_0_14, na.rm = TRUE),
     age_10_17 = sum(age_10_17, na.rm = TRUE),
     age_15_64 = sum(age_15_64, na.rm = TRUE),
+    age_18_59 = sum(age_18_59, na.rm = TRUE),
     age_18_64 = sum(age_18_64, na.rm = TRUE),
+    age_60_and_more = sum(age_60_and_more, na.rm = T),
     age_65 = sum(age_65, na.rm = TRUE)
   )  
 
+# Age Cat Vars
+age_0_4_vars <- c(
+  'age_0_4',
+  'age_0_4_hh'
+)
+age_0_17_vars <- c(
+  'age_0_17',
+  'age_0_17_hh'
+)
+
+age_0_14_vars <- c(
+  'age_0_14',
+  'age_0_14_hh'
+)
+
+age_10_17_vars <- c(
+  'age_10_17',
+  'age_10_17_hh'
+)
+
+age_15_64_vars <- c(
+  'age_15_64',
+  'age_15_64_hh'
+)
+
+age_18_59_vars <- c(
+  'age_18_59',
+  'age_18_59_hh'
+)
+
+age_18_64_vars <- c(
+  'age_18_64',
+  'age_18_64_hh'
+)
+
+age_60_and_more_var <- c(
+  'age_60_and_more',
+  'age_60_and_more_hh'
+)
+
+age_65_var <- c(
+  'age_65',
+  'age_65_hh'
+)
+
+
+
+
 data <- full_join(data, hh_group,by = c("uuid"="_submission__uuid"))
+
+# Merge Age cat hh_roster and hh data
+
+data$age_0_4_merged <-   comp_score(data,age_0_4_vars)
+data$age_0_17_merged <- comp_score(data,age_0_17_vars)
+data$age_0_14_merged <- comp_score(data,age_0_14_vars)
+data$age_10_17_merged <- comp_score(data,age_10_17_vars)
+data$age_15_64_merged <- comp_score(data,age_15_64_vars)
+data$age_18_59_merged <- comp_score(data,age_18_59_vars)
+data$age_18_64_merged <- comp_score(data,age_18_64_vars)
+data$age_60_and_more_merged <- comp_score(data,age_60_and_more_var)
+data$age_65_merged <- comp_score(data,age_65_var)
 
  # Adjust displacement status as more information in other data
 non_displ_data <- read.csv("input/Non_Displaced_Host_List_v2.csv",stringsAsFactors=F,na.strings = c("", "NA"))
@@ -1354,9 +1465,15 @@ data <- data %>%
       TRUE ~ NA_character_
     ),
     dep_ratio_call =  case_when(
-      age_0_14 == 0 & age_65 == 0 ~ 0,
-      (age_0_14 > 0 | age_65 > 0) ~ 
-        sum(age_0_14,age_65, na.rm = TRUE)/sum(age_15_64,na.rm = TRUE),
+      age_0_4_merged == 0 & age_65_merged == 0 ~ 0,
+      (age_0_14_merged > 0 | age_65_merged > 0) ~ 
+        sum(age_0_14_merged,age_65_merged, na.rm = TRUE)/sum(age_15_64_merged,na.rm = TRUE),
+      TRUE ~ NA_real_
+    ),
+    dep_ratio_call_2 =  case_when(
+      age_0_17_merged == 0 & age_60_and_more_merged == 0 ~ 0,
+      (age_0_17_merged > 0 | age_60_and_more_merged > 0) ~ 
+        sum(age_0_17_merged,age_60_and_more_merged, na.rm = TRUE)/sum(age_18_59_merged ,na.rm = TRUE),
       TRUE ~ NA_real_
     ),
     female_lit_call =  case_when(
@@ -2317,6 +2434,28 @@ data <- data %>%
       msni_fsl_lsg_score >= 9 ~ 4
     )
   )
+
+# fsl_lsg severity 2
+data <- data %>% 
+  mutate(
+    fsl_lsg_2 = case_when(
+      msni_fsl_lsg_score < 3 ~ 1,
+      msni_fsl_lsg_score > 2 & msni_fsl_lsg_score < 7 ~ 2,
+      msni_fsl_lsg_score > 6 & msni_fsl_lsg_score < 9 ~ 3,
+      msni_fsl_lsg_score >= 9 ~ 4
+    )
+  )
+
+# fsl_lsg severity 3
+data <- data %>% 
+  mutate(
+    fsl_lsg_3 = case_when(
+      msni_fsl_lsg_score < 3 ~ 1,
+      msni_fsl_lsg_score > 2 & msni_fsl_lsg_score < 8 ~ 2,
+      msni_fsl_lsg_score > 7 & msni_fsl_lsg_score < 10 ~ 3,
+      msni_fsl_lsg_score >= 10 ~ 4
+    )
+  )
   
 #### end fsl_lsg
 
@@ -2480,6 +2619,28 @@ data <- data %>%
     )
   )
 
+# wash_lsg severity 2
+data <- data %>% 
+  mutate(
+    wash_lsg_2 = case_when(
+      msni_wash_lsg_score < 3 ~ 1,
+      msni_wash_lsg_score > 2 & msni_wash_lsg_score < 7 ~ 2,
+      msni_wash_lsg_score > 6 & msni_wash_lsg_score < 9 ~ 3,
+      msni_wash_lsg_score >= 9 ~ 4
+    )
+  )
+
+# wash_lsg severity 3
+data <- data %>% 
+  mutate(
+    wash_lsg_3 = case_when(
+      msni_wash_lsg_score < 3 ~ 1,
+      msni_wash_lsg_score > 2 & msni_wash_lsg_score < 8 ~ 2,
+      msni_wash_lsg_score > 7 & msni_wash_lsg_score < 10 ~ 3,
+      msni_wash_lsg_score >= 10 ~ 4
+    )
+  )
+
 #### end wash_lsg
 
 
@@ -2566,6 +2727,152 @@ data$msni <- msni(education_lsg = data$education_lsg,
                   capacity_gaps = data$capacity_gaps,
                   impact = data$impact)
 
+data$msni2 <- msni(education_lsg = data$education_lsg,
+                  fsl_lsg = data$fsl_lsg_2,
+                  health_lsg = data$health_lsg,
+                  protection_lsg = data$protection_lsg,
+                  shelter_lsg = data$shelter_lsg,
+                  wash_lsg = data$wash_lsg_2, 
+                  capacity_gaps = data$capacity_gaps,
+                  impact = data$impact)
+
+data$msni3 <- msni(education_lsg = data$education_lsg,
+                  fsl_lsg = data$fsl_lsg_3,
+                  health_lsg = data$health_lsg,
+                  protection_lsg = data$protection_lsg,
+                  shelter_lsg = data$shelter_lsg,
+                  wash_lsg = data$wash_lsg_3, 
+                  capacity_gaps = data$capacity_gaps,
+                  impact = data$impact)
+
+
+data$msni_sev_high <- ifelse(data$msni==3|data$msni==4,1,0)
+
+
+# HHs found to have severe or extreme sectoral needs in one or more sectors
+# lsg_needs_2_cal
+data <- data %>% 
+  mutate( 
+    shelter_lsg_class = case_when(
+      shelter_lsg == 3 | shelter_lsg == 4 ~ 1,
+      shelter_lsg == 1 | shelter_lsg == 2 ~ 0,
+      TRUE ~ NA_real_
+    ),
+    fsl_lsg_class = case_when(
+      fsl_lsg == 3 | fsl_lsg == 4 ~ 1,
+      fsl_lsg == 1 | fsl_lsg == 2 ~ 0,
+      TRUE ~ NA_real_
+    ),
+    health_lsg_class = case_when(
+      health_lsg == 3 | health_lsg == 4 ~ 1,
+      health_lsg == 1 | health_lsg == 2 ~ 0,
+      TRUE ~ NA_real_
+    ), 
+    protection_lsg_class = case_when(
+      protection_lsg == 3 | protection_lsg == 4 ~ 1,
+      protection_lsg == 1 | protection_lsg == 2 ~ 0,
+      TRUE ~ NA_real_
+    ),
+    wash_lsg_class = case_when(
+      wash_lsg == 3 | wash_lsg == 4 ~ 1,
+      wash_lsg == 1 | wash_lsg == 2 ~ 0,
+      TRUE ~ NA_real_
+    ),
+    education_lsg = case_when(
+      education_lsg == 3 | education_lsg == 4 ~ 1,
+      education_lsg == 1 | education_lsg == 2 ~ 0,
+      TRUE ~ NA_real_
+    )
+  )
+
+lsg_needs_2_cal_vars <- c(
+  "shelter_lsg_class",
+  "fsl_lsg_class",
+  "health_lsg_class",
+  "protection_lsg_class",
+  "wash_lsg_class",
+  "education_lsg"
+)
+
+# lsg_needs_2_cal score
+data$lsg_needs_2_cal_score <- comp_score(data, lsg_needs_2_cal_vars)
+
+# lsg_needs_2_cal
+data <- data %>% 
+  mutate(
+    lsg_needs_2_cal = case_when(
+      lsg_needs_2_cal_score == 0 ~ "no_need",
+      lsg_needs_2_cal_score == 1 ~ "one_need",
+      lsg_needs_2_cal_score > 1 ~ "two_or_more_need"
+      )
+    )
+
+
+
+# msni drivers
+data <- data %>% 
+  mutate(
+    fsl_wash_driver = case_when(
+      fsl_lsg == 3 | fsl_lsg == 4 | wash_lsg == 3 | wash_lsg == 4 ~ "sectoral_need",
+      fsl_lsg == 1 | fsl_lsg == 2 | wash_lsg == 1 | wash_lsg == 2 ~ "no_need",
+      TRUE ~ NA_character_
+    ),
+    impact_driver = case_when(
+      ((impact == 3 | impact == 4) & (health_lsg == 3 | health_lsg == 4)) |
+      ((impact == 3 | impact == 4) & (shelter_lsg == 3 | shelter_lsg == 4)) |
+      ((impact == 3 | impact == 4) & (protection_lsg == 3 | protection_lsg == 4)) ~ "sectoral_need",
+      TRUE ~ "no_need"
+    ),
+    shelter_driver_class = case_when(
+      shelter_lsg == 3 | shelter_lsg == 4 ~ 1,
+      TRUE ~ 0,
+    ), 
+    protection_driver_class = case_when(
+      protection_lsg == 3 | protection_lsg == 4 ~ 1,
+      TRUE ~ 0
+    ),
+    health_driver_class = case_when(
+      health_lsg == 3 | health_lsg == 4 ~ 1,
+      TRUE ~ 0
+    )
+  )
+
+# esnfi_prot_health_driver
+esnfi_prot_health_driver_vars <- c(
+  "shelter_driver_class",
+  "protection_driver_class",
+  "health_driver_class"
+)
+
+# esnfi_prot_health_driver score
+data$esnfi_prot_health_driver_score <- comp_score(data, esnfi_prot_health_driver_vars)
+
+# lsg_needs_2_cal
+data <- data %>% 
+  mutate(
+    esnfi_prot_health_driver = case_when(
+      esnfi_prot_health_driver_score <= 1 ~ "no_need",
+      esnfi_prot_health_driver_score >= 2 ~ "sectoral_need",
+    )
+  )
+
+
+############### MSNI TEST ###############  
+
+data <- data %>% 
+  mutate(
+    hh_msni_one = case_when(
+      education_lsg == 1 & fsl_lsg == 1 & health_lsg == 1  & protection_lsg == 1 & shelter_lsg == 1  & wash_lsg == 1  &
+      capacity_gaps == 1 & impact == 1 ~ "1",
+      TRUE ~ "1+"
+    ), 
+    hh_msni_one_only_sectors = case_when(
+      education_lsg == 1 & fsl_lsg == 1 & health_lsg == 1  & protection_lsg == 1 & shelter_lsg == 1  & wash_lsg == 1 ~ "1",
+      TRUE ~ "1+"
+    )
+  )
+
+#########################################
 
 #join main dataset var to hh roster
 data_sub <- data %>% select(final_displacement_status_non_displ, region_disagg, urban_disagg,
