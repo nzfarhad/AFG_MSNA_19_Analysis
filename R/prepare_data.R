@@ -2324,11 +2324,6 @@ data <- data %>%
       lcsi_severity == "severe" ~ 3,
       lcsi_severity == "extreme" ~ 4,
       TRUE ~ NA_real_
-    ),
-    capacity_gaps_sev = case_when(
-      capacity_gaps >=3 ~ "high",
-      capacity_gaps <=2 ~ "low",
-      TRUE ~ NA_character_
     )
   )
 
@@ -2839,6 +2834,11 @@ data <- data %>%
     health_driver_class = case_when(
       health_lsg == 3 | health_lsg == 4 ~ 1,
       TRUE ~ 0
+    ),
+    capacity_gaps_sev = case_when(
+      capacity_gaps >=3 ~ "high",
+      capacity_gaps <=2 ~ "low",
+      TRUE ~ NA_character_
     )
   )
 
