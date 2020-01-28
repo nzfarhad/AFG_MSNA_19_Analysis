@@ -2324,6 +2324,11 @@ data <- data %>%
       lcsi_severity == "severe" ~ 3,
       lcsi_severity == "extreme" ~ 4,
       TRUE ~ NA_real_
+    ),
+    capacity_gaps_sev = case_when(
+      capacity_gaps >=3 ~ "high",
+      capacity_gaps <=2 ~ "low",
+      TRUE ~ NA_character_
     )
   )
 
